@@ -27,7 +27,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
 class ReadmeExamples {
-
     // ------------------------------------------------------------------
     // Shared config interface matching the README "Writing a Script" example
     // ------------------------------------------------------------------
@@ -103,6 +102,7 @@ class ReadmeExamples {
 
             override fun getError(scriptConfig: ScriptConfig): String? = null
         }
+
         @Suppress("UNUSED_VARIABLE")
         val modifier = ShowWhenEnabled()
     }
@@ -192,6 +192,7 @@ class ReadmeExamples {
             val factory = TestComponentProviderFactory()
             factory.requestInputResults = listOf("myinput")
             val provider = factory.create()
+
             @Suppress("UNUSED_VARIABLE")
             val input = provider.userInteraction().requestInput("Enter code", "Check your email")
         }
@@ -225,6 +226,7 @@ class ReadmeExamples {
                 ScriptParameters().apply {
                     putString("order_id", "12345")
                 }
+
             @Suppress("UNUSED_VARIABLE")
             val handle = provider.scriptLauncher().start(TestChildScript::class.java, parameters)
         }
