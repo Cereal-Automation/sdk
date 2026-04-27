@@ -9,7 +9,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDKs
@@ -24,7 +24,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDKs
@@ -39,7 +39,7 @@ jobs:
 
   ktlint:
     name: Ktlint
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDKs
@@ -54,7 +54,7 @@ jobs:
 
   api-check:
     name: API Binary Compatibility Check
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDKs

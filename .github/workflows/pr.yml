@@ -7,14 +7,14 @@ jobs:
 
   validate:
     name: Validate gradle wrapper
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: gradle/actions/wrapper-validation@v5
 
   build:
     name: Build
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: [ validate ]
     steps:
       - uses: actions/checkout@v6
@@ -30,7 +30,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: [ validate ]
     steps:
       - uses: actions/checkout@v6
@@ -46,7 +46,7 @@ jobs:
 
   ktlint:
     name: Ktlint
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: [ validate ]
     steps:
       - uses: actions/checkout@v6
@@ -62,7 +62,7 @@ jobs:
 
   api-check:
     name: API Binary Compatibility Check
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: [ validate ]
     steps:
       - uses: actions/checkout@v6
