@@ -161,7 +161,7 @@ class ReadmeExamples {
     // ------------------------------------------------------------------
 
     @Test
-    fun `readme user interaction showUrl compiles`() {
+    fun `readme user interaction showUrl compiles`() =
         runBlocking {
             val factory = TestComponentProviderFactory()
             factory.showUrlResults =
@@ -179,8 +179,8 @@ class ReadmeExamples {
                 url = "https://example.com/login",
                 shouldFinish = { it.url.startsWith("https://example.com/success") },
             )
+            Unit
         }
-    }
 
     // ------------------------------------------------------------------
     // User interaction — requestInput
@@ -212,7 +212,7 @@ class ReadmeExamples {
     // ------------------------------------------------------------------
 
     @Test
-    fun `readme child scripts compiles`() {
+    fun `readme child scripts compiles`() =
         runBlocking {
             val childConfig =
                 mockk<TestChildConfiguration> {
@@ -225,9 +225,9 @@ class ReadmeExamples {
                 ScriptParameters().apply {
                     putString("order_id", "12345")
                 }
-            provider.scriptLauncher().start(TestChildScript::class.java, parameters)
+            @Suppress("UNUSED_VARIABLE")
+            val handle = provider.scriptLauncher().start(TestChildScript::class.java, parameters)
         }
-    }
 
     // ------------------------------------------------------------------
     // Test runner
@@ -259,6 +259,7 @@ class ReadmeExamples {
                     every { targetUrl() } returns "https://example.com"
                     every { retryCount() } returns 1
                 }
+            // Covers the README Testing section: factory + runner wired together
             val factory = TestComponentProviderFactory()
             val runner = TestScriptRunner(script)
             runner.run(config, factory)
