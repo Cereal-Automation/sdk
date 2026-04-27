@@ -3,8 +3,7 @@ name: Release cereal developer libraries
 on:
   push:
     tags:
-      - 'cereal-test-utils/*'
-      - 'cereal-sdk/*'
+      - '[0-9]*'
 
 env:
   DO_ACCESS_KEY: ${{ vars.DO_ACCESS_KEY }}
@@ -14,8 +13,11 @@ env:
 
 jobs:
   build:
-    name: Build
+    name: Build ${{ matrix.module }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [cereal-sdk, cereal-test-utils]
     steps:
       - uses: actions/checkout@v6
       - name: Make gradlew executable
@@ -28,17 +30,12 @@ jobs:
             17
             21
           cache: 'gradle'
-      - uses: jungwinter/split@v2
-        id: tag-version-split
-        with:
-          msg: ${{ github.ref_name }}
-          separator: '/'
       - name: Build
         run:
-          ./gradlew ${{ steps.tag-version-split.outputs._0 }}:jar --console=plain
+          ./gradlew ${{ matrix.module }}:jar --console=plain
       - name: Create maven artifact
         run:
-          ./gradlew ${{ steps.tag-version-split.outputs._0 }}:publishUnobfuscatedPublicationToLocalBuildRepository -Pversion=${{ steps.tag-version-split.outputs._1 }} --console=plain
+          ./gradlew ${{ matrix.module }}:publishUnobfuscatedPublicationToLocalBuildRepository -Pversion=${{ github.ref_name }} --console=plain
       - name: Upload artifacts to maven repository
         uses: BetaHuhn/do-spaces-action@v2
         with:
@@ -46,10 +43,10 @@ jobs:
           secret_key: ${{ env.DO_SECRET_KEY }}
           space_name: ${{ env.DO_SPACE_NAME_MAVEN }}
           space_region: ${{ env.DO_SPACE_REGION }}
-          source: ${{ steps.tag-version-split.outputs._0 }}/build/maven
+          source: ${{ matrix.module }}/build/maven
           out_dir: releases
       - name: Store release jar
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.tag-version-split.outputs._0 }}-${{ steps.tag-version-split.outputs._1 }}-release
-          path: ${{ steps.tag-version-split.outputs._0 }}/build/libs/release.jar
+          name: ${{ matrix.module }}-${{ github.ref_name }}-release
+          path: ${{ matrix.module }}/build/libs/release.jar
