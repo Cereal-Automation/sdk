@@ -1,0 +1,55 @@
+name: Release cereal developer libraries
+
+on:
+  push:
+    tags:
+      - 'cereal-test-utils/*'
+      - 'cereal-sdk/*'
+
+env:
+  DO_ACCESS_KEY: ${{ vars.DO_ACCESS_KEY }}
+  DO_SECRET_KEY: ${{ secrets.DO_SECRET_KEY }}
+  DO_SPACE_NAME_MAVEN: ${{ vars.DO_SPACE_NAME_MAVEN }}
+  DO_SPACE_REGION: ${{ vars.DO_SPACE_REGION }}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: |
+            17
+            21
+          cache: 'gradle'
+      - uses: jungwinter/split@v2
+        id: tag-version-split
+        with:
+          msg: ${{ github.ref_name }}
+          separator: '/'
+      - name: Build
+        run:
+          ./gradlew ${{ steps.tag-version-split.outputs._0 }}:jar --console=plain
+      - name: Create maven artifact
+        run:
+          ./gradlew ${{ steps.tag-version-split.outputs._0 }}:publishUnobfuscatedPublicationToLocalBuildRepository -Pversion=${{ steps.tag-version-split.outputs._1 }} --console=plain
+      - name: Upload artifacts to maven repository
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ env.DO_ACCESS_KEY }}
+          secret_key: ${{ env.DO_SECRET_KEY }}
+          space_name: ${{ env.DO_SPACE_NAME_MAVEN }}
+          space_region: ${{ env.DO_SPACE_REGION }}
+          source: ${{ steps.tag-version-split.outputs._0 }}/build/maven
+          out_dir: releases
+      - name: Store release jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.tag-version-split.outputs._0 }}-${{ steps.tag-version-split.outputs._1 }}-release
+          path: ${{ steps.tag-version-split.outputs._0 }}/build/libs/release.jar

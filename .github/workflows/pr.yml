@@ -1,0 +1,77 @@
+name: CEREAL SDK - CI (PR)
+
+on:
+  pull_request
+
+jobs:
+
+  validate:
+    name: Validate gradle wrapper
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v5
+
+  build:
+    name: Build
+    runs-on: self-hosted
+    needs: [ validate ]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDKs
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: |
+            17
+            21
+      - name: Building
+        run: ./gradlew build --stacktrace -x test --build-cache --console=plain
+
+  test:
+    name: Test
+    runs-on: self-hosted
+    needs: [ validate ]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDKs
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: |
+            17
+            21
+      - name: Testing
+        run: ./gradlew test --stacktrace --build-cache --console=plain
+
+  ktlint:
+    name: Ktlint
+    runs-on: self-hosted
+    needs: [ validate ]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDKs
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: |
+            17
+            21
+      - name: Checking code conventions
+        run: ./gradlew ktlintCheck --build-cache --console=plain
+
+  api-check:
+    name: API Binary Compatibility Check
+    runs-on: self-hosted
+    needs: [ validate ]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDKs
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: |
+            17
+            21
+      - name: Checking API binary compatibility
+        run: ./gradlew :cereal-sdk:apiCheck --build-cache --console=plain

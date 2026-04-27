@@ -1,0 +1,68 @@
+name: CEREAL SDK - CI (push)
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDKs
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: |
+            17
+            21
+      - name: Building
+        run: ./gradlew build --stacktrace -x test --build-cache --console=plain
+
+  test:
+    name: Test
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDKs
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: |
+            17
+            21
+      - name: Testing
+        run: ./gradlew test --stacktrace --build-cache --console=plain
+
+  ktlint:
+    name: Ktlint
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDKs
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: |
+            17
+            21
+      - name: Checking code conventions
+        run: ./gradlew ktlintCheck --build-cache --console=plain
+
+  api-check:
+    name: API Binary Compatibility Check
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDKs
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: |
+            17
+            21
+      - name: Checking API binary compatibility
+        run: ./gradlew :cereal-sdk:apiCheck --build-cache --console=plain
