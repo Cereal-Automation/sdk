@@ -71,10 +71,10 @@ class MyScript : Script<MyScript.Config> {
     }
 
     interface Config : ScriptConfiguration {
-        @ScriptConfigurationItem(keyName = "target_url", name = "Target URL", position = 0)
+        @ScriptConfigurationItem(keyName = "target_url", name = "Target URL", description = "URL the script will operate on", position = 0)
         fun targetUrl(): String
 
-        @ScriptConfigurationItem(keyName = "retry_count", name = "Retry count", position = 1)
+        @ScriptConfigurationItem(keyName = "retry_count", name = "Retry count", description = "How many times to retry on failure", position = 1)
         fun retryCount(): Int = 3
     }
 }
