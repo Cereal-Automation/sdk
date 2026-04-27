@@ -87,6 +87,9 @@ gradle-app.setting
 .classpath
 *.hprof
 
+### Worktrees ###
+.worktrees/
+
 ### Custom ###
 .idea/ktlint-plugin.xml
 .kotlin
