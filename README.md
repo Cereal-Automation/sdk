@@ -131,25 +131,25 @@ Access runtime services through `ComponentProvider`:
 ### Logger
 
 ```kotlin
-provider.logger.info("message")
-provider.logger.warn("message")
-provider.logger.error("message")
-provider.logger.debug("message")
+provider.logger().info("message")
+provider.logger().warn("message")
+provider.logger().error("message")
+provider.logger().debug("message")
 ```
 
 ### Preferences (persistent key-value store)
 
 ```kotlin
-provider.preferences.setString("key", "value")
-val value = provider.preferences.getString("key")
+provider.preference().setString("key", "value")
+val value = provider.preference().getString("key")
 ```
 
-Typed variants: `getString/setString`, `getInt/setInt`, `getLong/setLong`, `getFloat/setFloat`, `getBoolean/setBoolean`, `delete`, `getAll`.
+Typed variants: `getString/setString`, `getInt/setInt`, `getLong/setLong`, `getFloat/setFloat`, `getBoolean/setBoolean`, `delete`.
 
 ### Notifications
 
 ```kotlin
-provider.notifications.sendNotification(
+provider.notification().sendNotification(
     notification("Checkout complete") {
         title { "Order placed" }
         discordMessage {
@@ -157,7 +157,7 @@ provider.notifications.sendNotification(
         }
         telegramMessage {
             text { "Successfully checked out." }
-            parseMode { "HTML" }
+            parseMode { TelegramParseMode.HTML }
         }
     }
 )
@@ -167,13 +167,17 @@ provider.notifications.sendNotification(
 
 ```kotlin
 // Open a URL in a WebView
-provider.userInteraction.showUrl("Login", "https://example.com/login", shouldFinish = true)
+provider.userInteraction().showUrl(
+    title = "Login",
+    url = "https://example.com/login",
+    shouldFinish = { it.url.startsWith("https://example.com/success") },
+)
 
 // Ask the user for text input
-val input = provider.userInteraction.requestInput("Enter code", "Check your email")
+val input = provider.userInteraction().requestInput("Enter code", "Check your email")
 
 // Show a continue button the user must click to proceed
-provider.userInteraction.showContinueButton()
+provider.userInteraction().showContinueButton()
 ```
 
 ### Child Scripts
@@ -185,9 +189,10 @@ Annotate secondary scripts with `@ChildScript` and launch them via `ScriptLaunch
 class ChildScript : Script<ChildScript.Config> { ... }
 
 // In parent script:
-val handle = provider.scriptLauncher.start(ChildScript::class, parameters {
-    put("order_id", "12345")
-})
+val parameters = ScriptParameters().apply {
+    putString("order_id", "12345")
+}
+val handle = provider.scriptLauncher().start(ChildScript::class.java, parameters)
 ```
 
 > `@ChildScript.id` must be stable — **never change it after release**.
@@ -200,7 +205,7 @@ Use `cereal-test-utils` to test scripts without the Cereal runtime.
 
 ```kotlin
 @Test
-fun `script succeeds when item is available`() {
+fun `script succeeds when item is available`() = runBlocking {
     val script = MyScript()
     val config = mockk<MyScript.Config> {
         every { targetUrl() } returns "https://example.com"
@@ -210,12 +215,14 @@ fun `script succeeds when item is available`() {
     val factory = TestComponentProviderFactory()
     // Optionally seed mock responses:
     // factory.requestInputResults = listOf("myinput")
-    // factory.showUrlResults = listOf(ShowUrlResult(...))
+    // factory.showUrlResults = listOf(
+    //     WebResourceRequest(method = "GET", requestHeaders = emptyMap(), url = "https://...", postData = null)
+    // )
 
     val runner = TestScriptRunner(script)
     runner.run(config, factory)
 
-    assertEquals(ScriptStatus.SUCCESS, runner.status)
+    assertEquals(ScriptStatus.Success, runner.status)
 }
 ```
 
