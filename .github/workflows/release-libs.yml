@@ -6,10 +6,10 @@ on:
       - '[0-9]*'
 
 env:
-  DO_ACCESS_KEY: ${{ vars.DO_ACCESS_KEY }}
+  DO_ACCESS_KEY: ${{ secrets.DO_ACCESS_KEY }}
   DO_SECRET_KEY: ${{ secrets.DO_SECRET_KEY }}
-  DO_SPACE_NAME_MAVEN: ${{ vars.DO_SPACE_NAME_MAVEN }}
-  DO_SPACE_REGION: ${{ vars.DO_SPACE_REGION }}
+  DO_SPACE_NAME_MAVEN: ${{ secrets.DO_SPACE_NAME_MAVEN }}
+  DO_SPACE_REGION: ${{ secrets.DO_SPACE_REGION }}
 
 jobs:
   build:
