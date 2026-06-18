@@ -41,12 +41,22 @@ public abstract interface annotation class com/cereal/sdk/ScriptConfigurationIte
 }
 
 public abstract interface class com/cereal/sdk/component/ComponentProvider {
+	public abstract fun artifact ()Lcom/cereal/sdk/component/artifact/ArtifactComponent;
 	public abstract fun license ()Lcom/cereal/sdk/component/license/LicenseComponent;
 	public abstract fun logger ()Lcom/cereal/sdk/component/logger/LoggerComponent;
 	public abstract fun notification ()Lcom/cereal/sdk/component/notification/NotificationComponent;
 	public abstract fun preference ()Lcom/cereal/sdk/component/preference/PreferenceComponent;
 	public abstract fun scriptLauncher ()Lcom/cereal/sdk/component/script/ScriptLauncherComponent;
 	public abstract fun userInteraction ()Lcom/cereal/sdk/component/userinteraction/UserInteractionComponent;
+}
+
+public abstract interface class com/cereal/sdk/component/artifact/ArtifactComponent {
+	public abstract fun emit (Ljava/lang/String;[BLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun emit$default (Lcom/cereal/sdk/component/artifact/ArtifactComponent;Ljava/lang/String;[BLjava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/cereal/sdk/component/artifact/ArtifactComponent$DefaultImpls {
+	public static synthetic fun emit$default (Lcom/cereal/sdk/component/artifact/ArtifactComponent;Ljava/lang/String;[BLjava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class com/cereal/sdk/component/license/HttpResponse : java/io/Closeable {

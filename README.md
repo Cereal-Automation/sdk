@@ -163,6 +163,27 @@ provider.notification().sendNotification(
 )
 ```
 
+### Artifacts (downloadable file output)
+
+Produce files the user can download from the app after the run. Each `emit` appends a new artifact to the current
+task; it never overwrites a previous one.
+
+```kotlin
+val csv = buildString {
+    appendLine("sku,price")
+    appendLine("ABC-1,19.99")
+}.toByteArray()
+
+provider.artifact().emit(
+    name = "results.csv",
+    bytes = csv,
+    mimeType = "text/csv", // optional; inferred from the name's extension when omitted
+)
+```
+
+The payload is held in memory, so this is meant for small, bounded outputs. `emit` throws if the host fails to
+persist the artifact — wrap the call yourself if the artifact is optional.
+
 ### User Interaction
 
 ```kotlin
@@ -226,7 +247,7 @@ fun `script succeeds when item is available`() = runBlocking {
 }
 ```
 
-`TestComponentProviderFactory` provides in-memory implementations of all components. Logged messages, stored preferences, and sent notifications are all accessible after the run for assertions.
+`TestComponentProviderFactory` provides in-memory implementations of all components. Logged messages, stored preferences, sent notifications, and emitted artifacts are all accessible after the run for assertions. Emitted artifacts are captured by `RecordingArtifactComponent.emitted`.
 
 ---
 

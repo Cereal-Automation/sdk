@@ -3,6 +3,7 @@ package com.cereal.test.components
 import com.cereal.sdk.Script
 import com.cereal.sdk.ScriptConfiguration
 import com.cereal.sdk.component.ComponentProvider
+import com.cereal.sdk.component.artifact.ArtifactComponent
 import com.cereal.sdk.component.license.LicenseComponent
 import com.cereal.sdk.component.logger.LoggerComponent
 import com.cereal.sdk.component.notification.NotificationComponent
@@ -53,6 +54,7 @@ class TestComponentProviderFactory : ComponentProviderFactory {
             TestPreferenceComponent(),
             TestScriptLauncherComponent(this, childScriptConfigurations),
             TestUserInteractionComponent(showUrlResults, showHtmlResults, requestInputResults),
+            RecordingArtifactComponent(),
         )
 }
 
@@ -63,6 +65,7 @@ class TestComponentProvider(
     private val preferenceComponent: PreferenceComponent,
     private val scriptLauncherComponent: ScriptLauncherComponent,
     private val userInteractionComponent: UserInteractionComponent,
+    private val artifactComponent: ArtifactComponent,
 ) : ComponentProvider {
     override fun logger(): LoggerComponent = loggerComponent
 
@@ -75,4 +78,6 @@ class TestComponentProvider(
     override fun scriptLauncher(): ScriptLauncherComponent = scriptLauncherComponent
 
     override fun userInteraction(): UserInteractionComponent = userInteractionComponent
+
+    override fun artifact(): ArtifactComponent = artifactComponent
 }
