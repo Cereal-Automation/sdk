@@ -1,5 +1,6 @@
 package com.cereal.sdk.component
 
+import com.cereal.sdk.component.artifact.ArtifactComponent
 import com.cereal.sdk.component.license.LicenseComponent
 import com.cereal.sdk.component.logger.LoggerComponent
 import com.cereal.sdk.component.notification.NotificationComponent
@@ -32,4 +33,7 @@ interface ComponentProvider {
 
     /** Returns the user interaction component used for browser / UI interactions with the user. */
     fun userInteraction(): UserInteractionComponent
+
+    /** Returns the artifact component for emitting downloadable file output produced by the script. */
+    fun artifact(): ArtifactComponent
 }
