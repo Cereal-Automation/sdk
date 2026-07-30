@@ -92,6 +92,78 @@ class ReadmeExamples {
         }
 
     // ------------------------------------------------------------------
+    // Complex lists
+    // ------------------------------------------------------------------
+
+    interface Target : ScriptConfigurationListItem {
+        @ScriptConfigurationItem(keyName = "sku", name = "SKU", description = "Product identifier")
+        fun sku(): String
+
+        @ScriptConfigurationItem(keyName = "qty", name = "Quantity", description = "How many to buy")
+        fun qty(): Int
+
+        @ScriptConfigurationItem(keyName = "notify", name = "Notify", description = "Send a notification on success")
+        fun notify(): Boolean?
+    }
+
+    interface PurchaseConfig : ScriptConfiguration {
+        @ScriptConfigurationItem(keyName = "targets", name = "Targets", description = "Products to purchase")
+        fun targets(): List<Target>
+    }
+
+    object AtMostTenTargets : StateModifier {
+        override fun getVisibility(scriptConfig: ScriptConfig): Visibility = Visibility.VisibleRequired
+
+        override fun getError(scriptConfig: ScriptConfig): String? {
+            val rows =
+                (scriptConfig.valueForKey("targets") as? ScriptConfigValue.ObjectListScriptConfigValue)
+                    ?.items
+                    .orEmpty()
+            return if (rows.size > 10) "At most 10 targets are allowed." else null
+        }
+    }
+
+    @Test
+    fun `readme complex list compiles`() =
+        runBlocking {
+            val configuration =
+                object : PurchaseConfig {
+                    override fun targets(): List<Target> =
+                        listOf(
+                            object : Target {
+                                override fun sku() = "ABC-123"
+
+                                override fun qty() = 2
+
+                                override fun notify() = true
+                            },
+                        )
+                }
+            val provider = TestComponentProviderFactory().create()
+            for (target in configuration.targets()) {
+                provider.logger().info("Buying ${target.qty()} x ${target.sku()}")
+            }
+
+            assertEquals("ABC-123", configuration.targets().single().sku())
+        }
+
+    @Test
+    fun `readme complex list state modifier compiles`() {
+        val rows =
+            List(11) {
+                object : ScriptConfig {
+                    override fun valueForKey(key: String) = ScriptConfigValue.NullScriptConfigValue
+                }
+            }
+        val config =
+            object : ScriptConfig {
+                override fun valueForKey(key: String) = ScriptConfigValue.ObjectListScriptConfigValue(rows)
+            }
+
+        assertEquals("At most 10 targets are allowed.", AtMostTenTargets.getError(config))
+    }
+
+    // ------------------------------------------------------------------
     // StateModifier
     // ------------------------------------------------------------------
 

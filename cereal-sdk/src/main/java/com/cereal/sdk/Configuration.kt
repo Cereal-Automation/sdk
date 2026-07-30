@@ -22,17 +22,21 @@ interface ScriptConfiguration
  *  - Boolean
  *  - String
  *  - Enum subclasses (the platform will expose a selection list of enum constants)
- *  - List<String> (a user-editable list of text values; other element types are rejected)
+ *  - List<String> (a user-editable list of text values)
+ *  - List<T> where T is a [ScriptConfigurationListItem] interface (a user-editable list of records —
+ *    see [ScriptConfigurationListItem] for the permitted field types and the rules it enforces)
  *  - Proxy / RandomProxy (special selectors)
  *
  * Any other return type — including Long, Short, Byte and ProxyGroup — is rejected when the platform loads the
- * script, and the script will not start. Only String, Int, Float and Double may be combined with [valuePerTask].
- * At most one item per configuration may return Proxy.
+ * script, and the script will not start — as is any other List element type. Only String, Int, Float and Double may be
+ * combined with [valuePerTask]. At most one item per configuration may return Proxy.
  *
  * **Default Values:**
  * You can provide a default value for configuration items by using a default implementation in the interface.
  * The default value will be pre-populated in the configuration UI when users create a new configuration.
- * Supported types for default values: Boolean, String, Int, Float, Double, and Enum.
+ * Supported types for default values: Boolean, String, Int, Float, Double, and Enum. A default implementation on a
+ * complex-list item ([ScriptConfigurationListItem]) is rejected when the platform loads the script — pre-seeded rows
+ * are not supported.
  *
  * Example:
  * ```kotlin

@@ -27,6 +27,7 @@ interface ScriptConfig {
      *         Proxy:        ProxyGroupScriptConfigValue
      *         RandomProxy:  ProxyGroupScriptConfigValue
      *         List<String>: StringListScriptConfigValue
+     *         List<T : ScriptConfigurationListItem>: ObjectListScriptConfigValue
      *
      *         For configuration items with their valuePerTask set to true [ScriptConfigValue.SequenceScriptConfigValue]
      *         or [ScriptConfigValue.NullScriptConfigValue] is returned.
@@ -77,6 +78,25 @@ sealed class ScriptConfigValue {
     /** String list configuration value. */
     data class StringListScriptConfigValue(
         val values: List<String>,
+    ) : ScriptConfigValue()
+
+    /**
+     * Complex list configuration value: the rows of a configuration item returning `List<T>` where `T`
+     * is a [com.cereal.sdk.ScriptConfigurationListItem].
+     *
+     * Each row is exposed as its own [ScriptConfig], so a row's field is read with the same
+     * [ScriptConfig.valueForKey] call used for top-level items:
+     *
+     * ```kotlin
+     * val rows = (config.valueForKey("targets") as? ObjectListScriptConfigValue)?.items.orEmpty()
+     * val firstSku = rows.firstOrNull()?.valueForKey("sku")
+     * ```
+     *
+     * A row omits keys the user left blank, so those read back as
+     * [ScriptConfigValue.NullScriptConfigValue].
+     */
+    data class ObjectListScriptConfigValue(
+        val items: List<ScriptConfig>,
     ) : ScriptConfigValue()
 
     /** Sequence of per-task values for an item declared with valuePerTask = true. */
