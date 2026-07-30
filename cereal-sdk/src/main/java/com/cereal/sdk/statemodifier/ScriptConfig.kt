@@ -18,13 +18,14 @@ interface ScriptConfig {
      *         With the exception of configuration items that have their valuePerTask set to true, the returned sealed
      *         class type depends on the return type of the configuration method.
      *
-     *         Double:      DoubleScriptConfigValue
-     *         Int:         IntScriptConfigValue
-     *         Boolean:     BooleanScriptConfigValue
-     *         String:      StringScriptConfigValue
-     *         Float:       FloatScriptConfigValue
-     *         Proxy:       ProxyGroupScriptConfigValue
-     *         RandomProxy: ProxyGroupScriptConfigValue
+     *         Double:       DoubleScriptConfigValue
+     *         Int:          IntScriptConfigValue
+     *         Boolean:      BooleanScriptConfigValue
+     *         String:       StringScriptConfigValue
+     *         Float:        FloatScriptConfigValue
+     *         Enum:         EnumScriptConfigValue
+     *         Proxy:        ProxyGroupScriptConfigValue
+     *         RandomProxy:  ProxyGroupScriptConfigValue
      *         List<String>: StringListScriptConfigValue
      *
      *         For configuration items with their valuePerTask set to true [ScriptConfigValue.SequenceScriptConfigValue]

@@ -16,12 +16,18 @@ interface ScriptConfiguration
  * Describes a single configurable value for a script.
  *
  * Annotate zero or more parameterless functions on your [ScriptConfiguration] implementation with this annotation.
- * The return type of the function determines how user input is validated and parsed. Supported return types are:
- *  - Primitive numeric types (Int, Long, Double, Float, Short, Byte)
+ * The return type of the function determines how user input is validated and parsed. The supported return types are
+ * exactly:
+ *  - Int, Float, Double
  *  - Boolean
  *  - String
  *  - Enum subclasses (the platform will expose a selection list of enum constants)
- *  - Proxy / RandomProxy / ProxyGroup, AccountGroup, BillingProfileGroup (special selectors)
+ *  - List<String> (a user-editable list of text values; other element types are rejected)
+ *  - Proxy / RandomProxy (special selectors)
+ *
+ * Any other return type — including Long, Short, Byte and ProxyGroup — is rejected when the platform loads the
+ * script, and the script will not start. Only String, Int, Float and Double may be combined with [valuePerTask].
+ * At most one item per configuration may return Proxy.
  *
  * **Default Values:**
  * You can provide a default value for configuration items by using a default implementation in the interface.
