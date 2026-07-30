@@ -24,15 +24,21 @@ interface ScriptConfiguration
  *  - Enum subclasses (the platform will expose a selection list of enum constants)
  *  - List<String> (a user-editable list of text values; other element types are rejected)
  *  - Proxy / RandomProxy (special selectors)
+ *  - [com.cereal.sdk.models.Secret] for credentials — masked on input and wherever configuration is
+ *    summarised (available since SDK 2.0.0)
  *
  * Any other return type — including Long, Short, Byte and ProxyGroup — is rejected when the platform loads the
- * script, and the script will not start. Only String, Int, Float and Double may be combined with [valuePerTask].
- * At most one item per configuration may return Proxy.
+ * script, and the script will not start. Only String, Int, Float, Double and Secret may be combined with
+ * [valuePerTask]. At most one item per configuration may return Proxy.
  *
  * **Default Values:**
  * You can provide a default value for configuration items by using a default implementation in the interface.
  * The default value will be pre-populated in the configuration UI when users create a new configuration.
  * Supported types for default values: Boolean, String, Int, Float, Double, and Enum.
+ *
+ * [com.cereal.sdk.models.Secret] deliberately does **not** support default values — a default returning a
+ * credential would be a hardcoded secret in source. A secret also cannot be the script identifier, because a
+ * masked identifier makes every instance of a script display identically; declaring one fails at load time.
  *
  * Example:
  * ```kotlin

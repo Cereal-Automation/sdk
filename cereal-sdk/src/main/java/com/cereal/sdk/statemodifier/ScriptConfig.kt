@@ -1,5 +1,6 @@
 package com.cereal.sdk.statemodifier
 
+import com.cereal.sdk.models.Secret
 import com.cereal.sdk.models.proxy.ProxyGroup
 
 /**
@@ -27,6 +28,7 @@ interface ScriptConfig {
      *         Proxy:        ProxyGroupScriptConfigValue
      *         RandomProxy:  ProxyGroupScriptConfigValue
      *         List<String>: StringListScriptConfigValue
+     *         Secret:       SecretScriptConfigValue
      *
      *         For configuration items with their valuePerTask set to true [ScriptConfigValue.SequenceScriptConfigValue]
      *         or [ScriptConfigValue.NullScriptConfigValue] is returned.
@@ -77,6 +79,17 @@ sealed class ScriptConfigValue {
     /** String list configuration value. */
     data class StringListScriptConfigValue(
         val values: List<String>,
+    ) : ScriptConfigValue()
+
+    /**
+     * Secret configuration value.
+     *
+     * A state modifier receives the entered secret so it can validate the credential's format in the
+     * configuration screen — and distinguish set from unset — rather than the script failing on
+     * authentication 30 seconds into a run.
+     */
+    data class SecretScriptConfigValue(
+        val value: Secret,
     ) : ScriptConfigValue()
 
     /** Sequence of per-task values for an item declared with valuePerTask = true. */

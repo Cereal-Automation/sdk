@@ -86,10 +86,11 @@ class MyScript : Script<MyScript.Config> {
 
 Declare configuration fields as methods on an interface that extends `ScriptConfiguration`, annotated with `@ScriptConfigurationItem`.
 
-**Supported types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums, `List<String>`, `Proxy`, `RandomProxy`.
+**Supported types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums, `List<String>`, `Proxy`, `RandomProxy`, `Secret`.
 
 This list is exhaustive — any other return type (including `Long`, `Short` and `Byte`) is rejected when the client
-loads the script. Of these, only `String`, `Int`, `Float` and `Double` may be combined with `valuePerTask = true`.
+loads the script. Of these, only `String`, `Int`, `Float`, `Double` and `Secret` may be combined with
+`valuePerTask = true`.
 
 Key annotation properties:
 
@@ -108,6 +109,57 @@ Provide a **default value** by returning one from the interface method:
 fun retryCount(): Int = 3
 fun enabled(): Boolean = true
 ```
+
+Secrets do **not** support default values — a default returning a credential would be a hardcoded secret in your source.
+
+### Credentials with Secret
+
+> Available since SDK version 2.0.0.
+
+Return `Secret` instead of `String` to ask the user for a credential. The platform renders the field masked with a
+default-off reveal toggle, renders the value as `***` wherever configuration is summarised (the task list, the custom
+dataset table), and keeps it out of anything built from `toString()`:
+
+```kotlin
+interface Config : ScriptConfiguration {
+    @ScriptConfigurationItem(keyName = "api_key", name = "API key", description = "Your service API key")
+    fun apiKey(): Secret
+
+    @ScriptConfigurationItem(keyName = "webhook_secret", name = "Webhook secret", description = "Optional")
+    fun webhookSecret(): Secret?
+}
+```
+
+Reach the plaintext with an explicit `reveal()` — a distinct verb, so every unwrapping site is greppable:
+
+```kotlin
+override suspend fun execute(
+    configuration: Config,
+    provider: ComponentProvider,
+    statusUpdate: suspend (String) -> Unit,
+): ExecutionResult {
+    val client = ApiClient(token = configuration.apiKey().reveal())
+    statusUpdate("Authenticating with ${configuration.apiKey()}")  // renders "Authenticating with ***"
+    return ExecutionResult.Success("Done")
+}
+```
+
+`Secret` works with `valuePerTask` so each task can run with its own credential, and with `stateModifier` — a state
+modifier receives a `SecretScriptConfigValue`, so it can validate the credential's format while the user types.
+
+**What `Secret` does not do:**
+
+- **It is not what encrypts the value.** Every configuration value is already encrypted at rest under the user's key.
+  `Secret` controls where a value may *appear*.
+- **`reveal()` is unguarded.** What your script does with the plaintext afterwards is your script's business. What the
+  type prevents is the *accidental* leak — the interpolated status message, the whole-configuration debug dump.
+- **Migrating an item from `String` to `Secret` preserves the stored value but cannot retract what already leaked** into
+  old logs, crash reports, or exports. **Rotate the credential after migrating.**
+- **Declaring an SDK version below 2.0.0 while using `Secret`** means your script fails to load on older clients rather
+  than failing at runtime — a safe failure, but set your manifest's declared SDK version to match your dependency.
+
+Not supported: default values, a secret as the script identifier, and lists of secrets — each fails at load time. Model
+per-account credentials with `valuePerTask` instead of a list.
 
 ### Dynamic visibility with StateModifier
 
