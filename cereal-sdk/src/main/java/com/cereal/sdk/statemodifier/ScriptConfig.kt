@@ -31,7 +31,9 @@ interface ScriptConfig {
      *         Secret:       SecretScriptConfigValue
      *
      *         For configuration items with their valuePerTask set to true [ScriptConfigValue.SequenceScriptConfigValue]
-     *         or [ScriptConfigValue.NullScriptConfigValue] is returned.
+     *         or [ScriptConfigValue.NullScriptConfigValue] is returned. The sequence wraps the variant matching the
+     *         item's return type — a per-task Secret item yields a sequence of
+     *         [ScriptConfigValue.SecretScriptConfigValue], never a bare one.
      */
     fun valueForKey(key: String): ScriptConfigValue
 }

@@ -145,7 +145,10 @@ override suspend fun execute(
 ```
 
 `Secret` works with `valuePerTask` so each task can run with its own credential, and with `stateModifier` — a state
-modifier receives a `SecretScriptConfigValue`, so it can validate the credential's format while the user types.
+modifier receives a `SecretScriptConfigValue`, so it can validate the credential's format while the user types. Note
+that on a **per-task** item `valueForKey` returns a `SequenceScriptConfigValue` wrapping the per-task
+`SecretScriptConfigValue`s, as it does for every other per-task type — so a state modifier written against
+`SecretScriptConfigValue` directly will not match, and its validation silently never fires.
 
 **What `Secret` does not do:**
 
@@ -158,8 +161,10 @@ modifier receives a `SecretScriptConfigValue`, so it can validate the credential
 - **Declaring an SDK version below 2.0.0 while using `Secret`** means your script fails to load on older clients rather
   than failing at runtime — a safe failure, but set your manifest's declared SDK version to match your dependency.
 
-Not supported: default values, a secret as the script identifier, and lists of secrets — each fails at load time. Model
-per-account credentials with `valuePerTask` instead of a list.
+Not supported: a secret as the script identifier, and lists of secrets. Both **fail at load time** — model per-account
+credentials with `valuePerTask` instead of a list. Default values are also unsupported, but with a weaker failure mode:
+a default implementation on a `Secret` item is **silently not extracted** rather than rejected, so don't write one and
+expect either a default or an error.
 
 ### Dynamic visibility with StateModifier
 
