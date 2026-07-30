@@ -114,7 +114,7 @@ Secrets do **not** support default values — a default returning a credential w
 
 ### Credentials with Secret
 
-> Available since SDK version 2.0.0.
+> Available since SDK version 1.11.0.
 
 Return `Secret` instead of `String` to ask the user for a credential. The platform renders the field masked with a
 default-off reveal toggle, renders the value as `***` wherever configuration is summarised (the task list, the custom
@@ -158,7 +158,7 @@ that on a **per-task** item `valueForKey` returns a `SequenceScriptConfigValue` 
   type prevents is the *accidental* leak — the interpolated status message, the whole-configuration debug dump.
 - **Migrating an item from `String` to `Secret` preserves the stored value but cannot retract what already leaked** into
   old logs, crash reports, or exports. **Rotate the credential after migrating.**
-- **Declaring an SDK version below 2.0.0 while using `Secret`** means your script fails to load on older clients rather
+- **Declaring an SDK version below 1.11.0 while using `Secret`** means your script fails to load on older clients rather
   than failing at runtime — a safe failure, but set your manifest's declared SDK version to match your dependency.
 
 Not supported: a secret as the script identifier, and lists of secrets. Both **fail at load time** — model per-account

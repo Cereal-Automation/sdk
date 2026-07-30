@@ -25,7 +25,7 @@ interface ScriptConfiguration
  *  - List<String> (a user-editable list of text values; other element types are rejected)
  *  - Proxy / RandomProxy (special selectors)
  *  - [com.cereal.sdk.models.Secret] for credentials — masked on input and wherever configuration is
- *    summarised (available since SDK 2.0.0)
+ *    summarised (available since SDK 1.11.0)
  *
  * Any other return type — including Long, Short, Byte and ProxyGroup — is rejected when the platform loads the
  * script, and the script will not start. Only String, Int, Float, Double and Secret may be combined with
