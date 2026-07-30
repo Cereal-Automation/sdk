@@ -9,21 +9,26 @@ import com.cereal.sdk.Script
 import com.cereal.sdk.ScriptConfiguration
 import com.cereal.sdk.ScriptConfigurationItem
 import com.cereal.sdk.component.ComponentProvider
+import com.cereal.sdk.component.artifact.ArtifactComponent
 import com.cereal.sdk.component.notification.notification
 import com.cereal.sdk.component.notification.telegram.model.TelegramParseMode
 import com.cereal.sdk.component.script.ScriptParameters
 import com.cereal.sdk.component.userinteraction.WebResourceRequest
 import com.cereal.sdk.statemodifier.ScriptConfig
+import com.cereal.sdk.statemodifier.ScriptConfigValue
 import com.cereal.sdk.statemodifier.ScriptConfigValue.BooleanScriptConfigValue
 import com.cereal.sdk.statemodifier.StateModifier
 import com.cereal.sdk.statemodifier.Visibility
 import com.cereal.sdk.testscript.child.TestChildConfiguration
 import com.cereal.sdk.testscript.child.TestChildScript
+import com.cereal.test.ComponentProviderFactory
 import com.cereal.test.TestScriptRunner
+import com.cereal.test.components.RecordingArtifactComponent
 import com.cereal.test.components.TestComponentProviderFactory
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ReadmeExamples {
@@ -90,21 +95,29 @@ class ReadmeExamples {
     // StateModifier
     // ------------------------------------------------------------------
 
+    // Declared as an object, matching the README: the platform reads the singleton instance and
+    // rejects a script whose state modifier is a class.
+    object ShowWhenEnabled : StateModifier {
+        override fun getVisibility(scriptConfig: ScriptConfig): Visibility =
+            if (scriptConfig.valueForKey("enabled") == BooleanScriptConfigValue(true)) {
+                Visibility.VisibleRequired
+            } else {
+                Visibility.Hidden
+            }
+
+        override fun getError(scriptConfig: ScriptConfig): String? = null
+    }
+
     @Test
     fun `readme state modifier compiles`() {
-        class ShowWhenEnabled : StateModifier {
-            override fun getVisibility(scriptConfig: ScriptConfig): Visibility =
-                if (scriptConfig.valueForKey("enabled") == BooleanScriptConfigValue(true)) {
-                    Visibility.VisibleRequired
-                } else {
-                    Visibility.Hidden
-                }
+        val modifier: StateModifier = ShowWhenEnabled
+        val emptyConfig =
+            object : ScriptConfig {
+                override fun valueForKey(key: String) = ScriptConfigValue.NullScriptConfigValue
+            }
 
-            override fun getError(scriptConfig: ScriptConfig): String? = null
-        }
-
-        @Suppress("UNUSED_VARIABLE")
-        val modifier = ShowWhenEnabled()
+        assertEquals(Visibility.Hidden, modifier.getVisibility(emptyConfig))
+        assertEquals(null, modifier.getError(emptyConfig))
     }
 
     // ------------------------------------------------------------------
@@ -265,5 +278,76 @@ class ReadmeExamples {
             val factory = TestComponentProviderFactory()
             val runner = TestScriptRunner(script)
             runner.run(config, factory)
+        }
+
+    // ------------------------------------------------------------------
+    // Artifacts
+    // ------------------------------------------------------------------
+
+    @Test
+    fun `readme artifact emit compiles`() =
+        runBlocking {
+            val provider = TestComponentProviderFactory().create()
+
+            val csv =
+                buildString {
+                    appendLine("sku,price")
+                    appendLine("ABC-1,19.99")
+                }.toByteArray()
+
+            provider.artifact().emit(
+                name = "results.csv",
+                bytes = csv,
+                mimeType = "text/csv", // optional; inferred from the name's extension when omitted
+            )
+        }
+
+    /** Covers the README Testing section's delegating-factory snippet for asserting on artifacts. */
+    @Test
+    fun `readme artifact assertion compiles`() =
+        runBlocking {
+            val script =
+                object : Script<ReadmeConfig> {
+                    override suspend fun onStart(
+                        configuration: ReadmeConfig,
+                        provider: ComponentProvider,
+                    ): Boolean = true
+
+                    override suspend fun execute(
+                        configuration: ReadmeConfig,
+                        provider: ComponentProvider,
+                        statusUpdate: suspend (String) -> Unit,
+                    ): ExecutionResult {
+                        provider.artifact().emit("results.csv", "sku\n".toByteArray(), "text/csv")
+                        return ExecutionResult.Success("Done")
+                    }
+
+                    override suspend fun onFinish(
+                        configuration: ReadmeConfig,
+                        provider: ComponentProvider,
+                    ) {}
+                }
+            val configuration =
+                mockk<ReadmeConfig> {
+                    every { targetUrl() } returns "https://example.com"
+                    every { retryCount() } returns 1
+                }
+            val scriptRunner = TestScriptRunner(script)
+
+            val artifacts = RecordingArtifactComponent()
+
+            val componentProviderFactory =
+                object : ComponentProviderFactory {
+                    private val delegate = TestComponentProviderFactory().create()
+
+                    override fun create(): ComponentProvider =
+                        object : ComponentProvider by delegate {
+                            override fun artifact(): ArtifactComponent = artifacts
+                        }
+                }
+
+            scriptRunner.run(configuration, componentProviderFactory)
+
+            assertEquals("results.csv", artifacts.emitted.single().name)
         }
 }

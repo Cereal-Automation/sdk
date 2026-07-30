@@ -86,7 +86,10 @@ class MyScript : Script<MyScript.Config> {
 
 Declare configuration fields as methods on an interface that extends `ScriptConfiguration`, annotated with `@ScriptConfigurationItem`.
 
-**Supported types:** `String`, `Int`, `Long`, `Double`, `Float`, `Short`, `Byte`, `Boolean`, enums, `Proxy`, `RandomProxy`, `ProxyGroup`, `AccountGroup`, `BillingProfileGroup`.
+**Supported types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums, `List<String>`, `Proxy`, `RandomProxy`.
+
+This list is exhaustive — any other return type (including `Long`, `Short` and `Byte`) is rejected when the client
+loads the script. Of these, only `String`, `Int`, `Float` and `Double` may be combined with `valuePerTask = true`.
 
 Key annotation properties:
 
@@ -108,10 +111,12 @@ fun enabled(): Boolean = true
 
 ### Dynamic visibility with StateModifier
 
-Implement `StateModifier` and reference it via `stateModifier` on `@ScriptConfigurationItem` to conditionally show/hide fields or attach validation errors:
+Implement `StateModifier` and reference it via `stateModifier` on `@ScriptConfigurationItem` to conditionally show/hide fields or attach validation errors.
+
+It must be declared as an `object`, not a `class` — the client reads the singleton instance and fails to load a script whose state modifier is a class:
 
 ```kotlin
-class ShowWhenEnabled : StateModifier {
+object ShowWhenEnabled : StateModifier {
     override fun getVisibility(config: ScriptConfig): Visibility =
         if (config.valueForKey("enabled") == BooleanScriptConfigValue(true))
             Visibility.VisibleRequired
@@ -247,7 +252,28 @@ fun `script succeeds when item is available`() = runBlocking {
 }
 ```
 
-`TestComponentProviderFactory` provides in-memory implementations of all components. Logged messages, stored preferences, sent notifications, and emitted artifacts are all accessible after the run for assertions. Emitted artifacts are captured by `RecordingArtifactComponent.emitted`.
+`TestComponentProviderFactory` provides in-memory implementations of all components. Artifacts are the only output it collects for assertions, via `RecordingArtifactComponent.emitted` — the bundled logger and notification components write to the console rather than to an inspectable list.
+
+`TestComponentProviderFactory` creates its `RecordingArtifactComponent` internally and does not expose it, so to assert on emitted artifacts, supply your own through a factory that delegates everything else to the default one:
+
+```kotlin
+val artifacts = RecordingArtifactComponent()
+
+val componentProviderFactory = object : ComponentProviderFactory {
+    private val delegate = TestComponentProviderFactory().create()
+
+    override fun create(): ComponentProvider =
+        object : ComponentProvider by delegate {
+            override fun artifact(): ArtifactComponent = artifacts
+        }
+}
+
+scriptRunner.run(configuration, componentProviderFactory)
+
+assertEquals("results.csv", artifacts.emitted.single().name)
+```
+
+Note that `TestPreferenceComponent` keeps its values in a store shared across instances, so preference state written by one test is visible to the next.
 
 ---
 
