@@ -87,11 +87,11 @@ class MyScript : Script<MyScript.Config> {
 Declare configuration fields as methods on an interface that extends `ScriptConfiguration`, annotated with `@ScriptConfigurationItem`.
 
 **Supported types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums, `List<String>`,
-`List<T : ScriptConfigurationListItem>` (see [Complex lists](#complex-lists)), `Proxy`, `RandomProxy`.
+`List<T : ScriptConfigurationListItem>` (see [Complex lists](#complex-lists)), `Proxy`, `RandomProxy`, `Secret`.
 
 This list is exhaustive — any other return type (including `Long`, `Short` and `Byte`) is rejected when the client
-loads the script, as is any other `List` element type. Of these, only `String`, `Int`, `Float` and `Double` may be
-combined with `valuePerTask = true`.
+loads the script, as is any other `List` element type. Of these, only `String`, `Int`, `Float`, `Double` and `Secret`
+may be combined with `valuePerTask = true`.
 
 Key annotation properties:
 
@@ -191,6 +191,61 @@ val configuration = object : PurchaseConfig {
         )
 }
 ```
+Secrets do **not** support default values — a default returning a credential would be a hardcoded secret in your source.
+
+### Credentials with Secret
+
+> Available since SDK version 1.11.0.
+
+Return `Secret` instead of `String` to ask the user for a credential. The platform renders the field masked with a
+default-off reveal toggle, renders the value as `***` wherever configuration is summarised (the task list, the custom
+dataset table), and keeps it out of anything built from `toString()`:
+
+```kotlin
+interface Config : ScriptConfiguration {
+    @ScriptConfigurationItem(keyName = "api_key", name = "API key", description = "Your service API key")
+    fun apiKey(): Secret
+
+    @ScriptConfigurationItem(keyName = "webhook_secret", name = "Webhook secret", description = "Optional")
+    fun webhookSecret(): Secret?
+}
+```
+
+Reach the plaintext with an explicit `reveal()` — a distinct verb, so every unwrapping site is greppable:
+
+```kotlin
+override suspend fun execute(
+    configuration: Config,
+    provider: ComponentProvider,
+    statusUpdate: suspend (String) -> Unit,
+): ExecutionResult {
+    val client = ApiClient(token = configuration.apiKey().reveal())
+    statusUpdate("Authenticating with ${configuration.apiKey()}")  // renders "Authenticating with ***"
+    return ExecutionResult.Success("Done")
+}
+```
+
+`Secret` works with `valuePerTask` so each task can run with its own credential, and with `stateModifier` — a state
+modifier receives a `SecretScriptConfigValue`, so it can validate the credential's format while the user types. Note
+that on a **per-task** item `valueForKey` returns a `SequenceScriptConfigValue` wrapping the per-task
+`SecretScriptConfigValue`s, as it does for every other per-task type — so a state modifier written against
+`SecretScriptConfigValue` directly will not match, and its validation silently never fires.
+
+**What `Secret` does not do:**
+
+- **It is not what encrypts the value.** Every configuration value is already encrypted at rest under the user's key.
+  `Secret` controls where a value may *appear*.
+- **`reveal()` is unguarded.** What your script does with the plaintext afterwards is your script's business. What the
+  type prevents is the *accidental* leak — the interpolated status message, the whole-configuration debug dump.
+- **Migrating an item from `String` to `Secret` preserves the stored value but cannot retract what already leaked** into
+  old logs, crash reports, or exports. **Rotate the credential after migrating.**
+- **Declaring an SDK version below 1.11.0 while using `Secret`** means your script fails to load on older clients rather
+  than failing at runtime — a safe failure, but set your manifest's declared SDK version to match your dependency.
+
+Not supported: a secret as the script identifier, and lists of secrets. Both **fail at load time** — model per-account
+credentials with `valuePerTask` instead of a list. Default values are also unsupported, but with a weaker failure mode:
+a default implementation on a `Secret` item is **silently not extracted** rather than rejected, so don't write one and
+expect either a default or an error.
 
 ### Dynamic visibility with StateModifier
 
