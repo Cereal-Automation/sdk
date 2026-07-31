@@ -14,9 +14,11 @@ import com.cereal.sdk.component.notification.notification
 import com.cereal.sdk.component.notification.telegram.model.TelegramParseMode
 import com.cereal.sdk.component.script.ScriptParameters
 import com.cereal.sdk.component.userinteraction.WebResourceRequest
+import com.cereal.sdk.models.Secret
 import com.cereal.sdk.statemodifier.ScriptConfig
 import com.cereal.sdk.statemodifier.ScriptConfigValue
 import com.cereal.sdk.statemodifier.ScriptConfigValue.BooleanScriptConfigValue
+import com.cereal.sdk.statemodifier.ScriptConfigValue.SecretScriptConfigValue
 import com.cereal.sdk.statemodifier.StateModifier
 import com.cereal.sdk.statemodifier.Visibility
 import com.cereal.sdk.testscript.child.TestChildConfiguration
@@ -119,6 +121,93 @@ class ReadmeExamples {
         assertEquals(Visibility.Hidden, modifier.getVisibility(emptyConfig))
         assertEquals(null, modifier.getError(emptyConfig))
     }
+
+    // ------------------------------------------------------------------
+    // Secret — credentials in configuration
+    // ------------------------------------------------------------------
+
+    interface ReadmeSecretConfig : ScriptConfiguration {
+        @ScriptConfigurationItem(
+            keyName = "api_key",
+            name = "API key",
+            description = "Your service API key",
+        )
+        fun apiKey(): Secret
+
+        @ScriptConfigurationItem(
+            keyName = "webhook_secret",
+            name = "Webhook secret",
+            description = "Optional",
+        )
+        fun webhookSecret(): Secret?
+    }
+
+    @Test
+    fun `readme secret compiles`() =
+        runBlocking {
+            val script =
+                object : Script<ReadmeSecretConfig> {
+                    override suspend fun onStart(
+                        configuration: ReadmeSecretConfig,
+                        provider: ComponentProvider,
+                    ): Boolean = true
+
+                    override suspend fun execute(
+                        configuration: ReadmeSecretConfig,
+                        provider: ComponentProvider,
+                        statusUpdate: suspend (String) -> Unit,
+                    ): ExecutionResult {
+                        @Suppress("UNUSED_VARIABLE")
+                        val token = configuration.apiKey().reveal()
+                        statusUpdate("Authenticating with ${configuration.apiKey()}")
+                        return ExecutionResult.Success("Done")
+                    }
+
+                    override suspend fun onFinish(
+                        configuration: ReadmeSecretConfig,
+                        provider: ComponentProvider,
+                    ) {}
+                }
+            val config =
+                mockk<ReadmeSecretConfig> {
+                    every { apiKey() } returns Secret("an-api-key")
+                    every { webhookSecret() } returns null
+                }
+            val runner = TestScriptRunner(script)
+            runner.run(config, TestComponentProviderFactory())
+        }
+
+    // Declared as an object, matching the README: the platform reads the singleton instance and
+    // rejects a script whose state modifier is a class.
+    object RequireApiKeyFormat : StateModifier {
+        override fun getVisibility(scriptConfig: ScriptConfig): Visibility = Visibility.VisibleRequired
+
+        override fun getError(scriptConfig: ScriptConfig): String? {
+            val value = scriptConfig.valueForKey("api_key")
+            if (value !is SecretScriptConfigValue) return null
+            return if (value.value.reveal().startsWith("sk-")) null else "API keys start with sk-"
+        }
+    }
+
+    @Test
+    fun `readme secret state modifier compiles`() {
+        val modifier: StateModifier = RequireApiKeyFormat
+
+        // A state modifier reads the entered credential, so it can validate the format while the user types.
+        assertEquals(null, modifier.getError(configWith(SecretScriptConfigValue(Secret("sk-live-1")))))
+        assertEquals(
+            "API keys start with sk-",
+            modifier.getError(configWith(SecretScriptConfigValue(Secret("nope")))),
+        )
+
+        // Unset is not an error — the required-field check owns that, not the format check.
+        assertEquals(null, modifier.getError(configWith(ScriptConfigValue.NullScriptConfigValue)))
+    }
+
+    private fun configWith(value: ScriptConfigValue) =
+        object : ScriptConfig {
+            override fun valueForKey(key: String) = value
+        }
 
     // ------------------------------------------------------------------
     // Logger
