@@ -86,7 +86,7 @@ class MyScript : Script<MyScript.Config> {
 
 Declare configuration fields as methods on an interface that extends `ScriptConfiguration`, annotated with `@ScriptConfigurationItem`.
 
-**Supported types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums, `List<String>`,
+**Supported types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums,
 `List<T : ScriptConfigurationListItem>` (see [Complex lists](#complex-lists)), `Proxy`, `RandomProxy`, `Secret`.
 
 This list is exhaustive — any other return type (including `Long`, `Short` and `Byte`) is rejected when the client
@@ -115,9 +115,10 @@ fun enabled(): Boolean = true
 
 Requires client SDK **1.11.0** or newer.
 
-When you need a list of *records* rather than a list of strings, declare the element type as an interface extending
-`ScriptConfigurationListItem` and annotate each field with `@ScriptConfigurationItem`. The client renders one card per
-row with the right widget per field and hands your script typed objects:
+A list configuration item is always a list of *records*: declare the element type as an interface extending
+`ScriptConfigurationListItem` and annotate each field with `@ScriptConfigurationItem`. The client renders one row per
+record with the right widget per field and hands your script typed objects. A list of single values is a record with
+one field:
 
 ```kotlin
 interface Target : ScriptConfigurationListItem {
@@ -161,7 +162,7 @@ rows across tasks is your script's business.
 complex-list item (pre-seeded rows are not supported); an unsupported field type; and two fields sharing a `keyName`.
 Field keys are namespaced under the list item's key, so a record field may reuse a top-level item's key name.
 
-Read the rows from a `StateModifier` through `ObjectListScriptConfigValue`, whose items are themselves `ScriptConfig`
+Read the rows from a `StateModifier` through `ListScriptConfigValue`, whose items are themselves `ScriptConfig`
 views — so a row's field is read with the same `valueForKey` call used for top-level items:
 
 ```kotlin
@@ -169,7 +170,7 @@ object AtMostTenTargets : StateModifier {
     override fun getVisibility(config: ScriptConfig): Visibility = Visibility.VisibleRequired
 
     override fun getError(config: ScriptConfig): String? {
-        val rows = (config.valueForKey("targets") as? ObjectListScriptConfigValue)?.items.orEmpty()
+        val rows = (config.valueForKey("targets") as? ListScriptConfigValue)?.items.orEmpty()
         return if (rows.size > 10) "At most 10 targets are allowed." else null
     }
 }
