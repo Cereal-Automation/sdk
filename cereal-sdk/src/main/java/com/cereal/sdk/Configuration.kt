@@ -22,9 +22,9 @@ interface ScriptConfiguration
  *  - Boolean
  *  - String
  *  - Enum subclasses (the platform will expose a selection list of enum constants)
- *  - List<String> (a user-editable list of text values)
  *  - List<T> where T is a [ScriptConfigurationListItem] interface (a user-editable list of records —
- *    see [ScriptConfigurationListItem] for the permitted field types and the rules it enforces)
+ *    see [ScriptConfigurationListItem] for the permitted field types and the rules it enforces). This is
+ *    the only supported list shape; a list of single values is a record with one field.
  *  - Proxy / RandomProxy (special selectors)
  *  - [com.cereal.sdk.models.Secret] for credentials — masked on input and wherever configuration is
  *    summarised (available since SDK 1.11.0)

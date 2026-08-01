@@ -118,7 +118,7 @@ class ReadmeExamples {
 
         override fun getError(scriptConfig: ScriptConfig): String? {
             val rows =
-                (scriptConfig.valueForKey("targets") as? ScriptConfigValue.ObjectListScriptConfigValue)
+                (scriptConfig.valueForKey("targets") as? ScriptConfigValue.ListScriptConfigValue)
                     ?.items
                     .orEmpty()
             return if (rows.size > 10) "At most 10 targets are allowed." else null
@@ -159,7 +159,7 @@ class ReadmeExamples {
             }
         val config =
             object : ScriptConfig {
-                override fun valueForKey(key: String) = ScriptConfigValue.ObjectListScriptConfigValue(rows)
+                override fun valueForKey(key: String) = ScriptConfigValue.ListScriptConfigValue(rows)
             }
 
         assertEquals("At most 10 targets are allowed.", AtMostTenTargets.getError(config))

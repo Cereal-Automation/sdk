@@ -38,7 +38,7 @@ package com.cereal.sdk
  *
  * **Cardinality limits** (a minimum or maximum number of rows) are expressed through the list item's
  * own [ScriptConfigurationItem.stateModifier], which can count the rows it reads back via
- * [com.cereal.sdk.statemodifier.ScriptConfigValue.ObjectListScriptConfigValue].
+ * [com.cereal.sdk.statemodifier.ScriptConfigValue.ListScriptConfigValue].
  *
  * **Concurrency:** the whole list is a single configuration value for a single script run, and every
  * task receives all of it. A complex list never fans out into one task per row — that remains the job
