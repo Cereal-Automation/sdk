@@ -281,6 +281,26 @@ class ReadmeExamples {
             override fun valueForKey(key: String) = value
         }
 
+    interface Account : ScriptConfigurationListItem {
+        @ScriptConfigurationItem(keyName = "label", name = "Label", description = "Account label")
+        fun label(): String
+
+        @ScriptConfigurationItem(keyName = "token", name = "Token", description = "Account API token")
+        fun token(): Secret
+    }
+
+    @Test
+    fun `readme secret in list row compiles`() {
+        val account =
+            object : Account {
+                override fun label() = "main"
+
+                override fun token() = Secret("sk-live-1")
+            }
+
+        assertEquals("sk-live-1", account.token().reveal())
+    }
+
     // ------------------------------------------------------------------
     // Logger
     // ------------------------------------------------------------------
