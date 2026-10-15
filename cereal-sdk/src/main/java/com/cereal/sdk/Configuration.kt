@@ -71,6 +71,8 @@ interface ScriptConfiguration
  *
  * Use [options] on a top-level `String` or `String?` item to offer fetched choices from a [FieldOptions] `object`.
  * Setting it on any other item is a definition error when the platform loads the script.
+ *
+ * [section] and [options] are available since 1.13.0.
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)

@@ -62,6 +62,8 @@ interface Script<T : ScriptConfiguration> {
      * See [TaskAction].
      *
      * @return The actions in menu order. Defaults to none.
+     *
+     * @since 1.13.0
      */
     fun taskActions(): List<TaskAction<T>> = emptyList()
 }

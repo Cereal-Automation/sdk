@@ -22,6 +22,8 @@ package com.cereal.sdk
  *     fun email(): String
  * }
  * ```
+ *
+ * @since 1.13.0
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
@@ -36,6 +38,8 @@ annotation class ScriptConfigurationSections(
  * the configuration.
  * @property name Header shown in the UI.
  * @property collapsed Whether the section starts collapsed.
+ *
+ * @since 1.13.0
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target

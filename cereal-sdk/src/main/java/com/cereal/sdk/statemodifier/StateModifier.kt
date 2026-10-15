@@ -34,6 +34,8 @@ interface StateModifier {
      * the script.
      *
      * @return the placeholder text, or null for none (the default).
+     *
+     * @since 1.13.0
      */
     fun getPlaceholder(scriptConfig: ScriptConfig): String? = null
 }

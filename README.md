@@ -82,6 +82,8 @@ class MyScript : Script<MyScript.Config> {
 
 ### Task actions
 
+Requires client SDK **1.13.0** or newer.
+
 Override `taskActions()` to add items to an existing task's menu, for example to reset state the script learned. Each action runs with that task's own configuration and `ComponentProvider`, so it reaches the same preferences and files as the task's runs. The client disables the items while the task runs and shows the `confirm` text (if non-null) before running one.
 
 ```kotlin
@@ -134,6 +136,8 @@ fun enabled(): Boolean = true
 ```
 
 ### Sections
+
+Requires client SDK **1.13.0** or newer.
 
 Group fields under headers by declaring sections once on the configuration interface, in display order, and naming
 a section on each field:
@@ -292,7 +296,7 @@ that on a **per-task** item `valueForKey` returns a `SequenceScriptConfigValue` 
 - **Declaring an SDK version below 1.11.0 while using `Secret`** means your script fails to load on older clients rather
   than failing at runtime — a safe failure, but set your manifest's declared SDK version to match your dependency.
 
-A complex-list row may hold a `Secret` field, so a list of named credentials is a record with a label and a secret:
+Since client SDK **1.13.0**, a complex-list row may hold a `Secret` field, so a list of named credentials is a record with a label and a secret:
 
 ```kotlin
 interface Account : ScriptConfigurationListItem {
@@ -342,6 +346,8 @@ object ServerUrlState : StateModifier {
 ```
 
 ### Fetched options
+
+Requires client SDK **1.13.0** or newer.
 
 A top-level `String` or `String?` item can offer choices fetched at form time. Set `options` to a `FieldOptions` `object` (like `stateModifier`, a `class` fails to load). The field becomes an editable combo box that always accepts free text, and only the picked option's `id` is stored.
 
