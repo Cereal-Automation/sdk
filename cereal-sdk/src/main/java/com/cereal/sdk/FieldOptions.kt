@@ -33,6 +33,8 @@ import com.cereal.sdk.statemodifier.ScriptConfig
  *     }
  * }
  * ```
+ *
+ * @since 1.13.0
  */
 interface FieldOptions {
     /**
@@ -60,6 +62,8 @@ interface FieldOptions {
  *
  * @property id the value stored in the configuration when the option is picked.
  * @property label optional display text shown above the id. When null, only the id is shown.
+ *
+ * @since 1.13.0
  */
 data class FieldOption(
     val id: String,
@@ -69,6 +73,8 @@ data class FieldOption(
 /**
  * Default [FieldOptions] used when a configuration item declares no options source. Depends on nothing and loads no
  * options; the field renders as a plain text field.
+ *
+ * @since 1.13.0
  */
 object NoFieldOptions : FieldOptions {
     override val dependsOn: Set<String> = emptySet()

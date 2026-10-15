@@ -8,6 +8,8 @@ import com.cereal.sdk.component.ComponentProvider
  *
  * The client lists the actions in the order the script returns them. It disables them while the task runs, so an
  * action never races a run of the same task.
+ *
+ * @since 1.13.0
  */
 interface TaskAction<T : ScriptConfiguration> {
     /** Menu label shown to the user, e.g. "Forget learned steps". */
