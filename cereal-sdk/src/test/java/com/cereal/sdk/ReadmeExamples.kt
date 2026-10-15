@@ -125,6 +125,53 @@ class ReadmeExamples {
     }
 
     // ------------------------------------------------------------------
+    // Task actions
+    // ------------------------------------------------------------------
+
+    object ReadmeForgetLearnedSteps : TaskAction<ReadmeConfig> {
+        override val name = "Forget learned steps"
+        override val confirm = "The script will re-learn the steps on its next run."
+
+        override suspend fun run(
+            configuration: ReadmeConfig,
+            provider: ComponentProvider,
+        ): String? {
+            provider.preference().delete("learned_steps")
+            return "Forgot learned steps"
+        }
+    }
+
+    @Test
+    fun `readme task actions compile`() =
+        runBlocking {
+            val script =
+                object : Script<ReadmeConfig> {
+                    override suspend fun onStart(
+                        configuration: ReadmeConfig,
+                        provider: ComponentProvider,
+                    ): Boolean = true
+
+                    override suspend fun execute(
+                        configuration: ReadmeConfig,
+                        provider: ComponentProvider,
+                        statusUpdate: suspend (String) -> Unit,
+                    ): ExecutionResult = ExecutionResult.Success("Done")
+
+                    override suspend fun onFinish(
+                        configuration: ReadmeConfig,
+                        provider: ComponentProvider,
+                    ) {}
+
+                    override fun taskActions(): List<TaskAction<ReadmeConfig>> = listOf(ReadmeForgetLearnedSteps)
+                }
+            val config = mockk<ReadmeConfig>()
+            val factory = TestComponentProviderFactory()
+
+            val message = TestScriptRunner(script).runTaskAction("Forget learned steps", config, factory)
+            assertEquals("Forgot learned steps", message)
+        }
+
+    // ------------------------------------------------------------------
     // Complex lists
     // ------------------------------------------------------------------
 
