@@ -42,6 +42,5 @@ object ModelState : StateModifier {
 
     override fun getError(scriptConfig: ScriptConfig): String? = null
 
-    override fun getPlaceholder(scriptConfig: ScriptConfig): String? =
-        (scriptConfig.valueForKey("provider") as? StringScriptConfigValue)?.value?.let { "$it-recommended" }
+    override fun getPlaceholder(scriptConfig: ScriptConfig): String? = (scriptConfig.valueForKey("provider") as? StringScriptConfigValue)?.value?.let { "$it-recommended" }
 }

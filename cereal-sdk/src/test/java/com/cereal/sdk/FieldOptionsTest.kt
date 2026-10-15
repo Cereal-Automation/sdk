@@ -21,8 +21,7 @@ class FieldOptionsTest {
             override fun valueForKey(key: String) = values.toMap()[key] ?: ScriptConfigValue.NullScriptConfigValue
         }
 
-    private fun item(function: String) =
-        OptionsConfiguration::class.java.getMethod(function).getAnnotation(ScriptConfigurationItem::class.java)
+    private fun item(function: String) = OptionsConfiguration::class.java.getMethod(function).getAnnotation(ScriptConfigurationItem::class.java)
 
     @Test
     fun `load returns options in order from a secret dependsOn field`() {
