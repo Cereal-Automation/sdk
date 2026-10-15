@@ -36,11 +36,22 @@ public abstract interface annotation class com/cereal/sdk/ScriptConfigurationIte
 	public abstract fun keyName ()Ljava/lang/String;
 	public abstract fun name ()Ljava/lang/String;
 	public abstract fun position ()I
+	public abstract fun section ()Ljava/lang/String;
 	public abstract fun stateModifier ()Ljava/lang/Class;
 	public abstract fun valuePerTask ()Z
 }
 
 public abstract interface class com/cereal/sdk/ScriptConfigurationListItem {
+}
+
+public abstract interface annotation class com/cereal/sdk/ScriptConfigurationSections : java/lang/annotation/Annotation {
+	public abstract fun value ()[Lcom/cereal/sdk/Section;
+}
+
+public abstract interface annotation class com/cereal/sdk/Section : java/lang/annotation/Annotation {
+	public abstract fun collapsed ()Z
+	public abstract fun key ()Ljava/lang/String;
+	public abstract fun name ()Ljava/lang/String;
 }
 
 public abstract interface class com/cereal/sdk/component/ComponentProvider {

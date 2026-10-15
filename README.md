@@ -100,9 +100,10 @@ Key annotation properties:
 | `keyName` | Stable identifier — **never change after release** |
 | `name` | Label shown in the UI |
 | `description` | Help text shown in the UI |
-| `position` | Display order |
+| `position` | Display order (within the field's section) |
 | `valuePerTask` | Allow different values per task |
 | `isScriptIdentifier` | Marks which field identifies a script instance |
+| `section` | Key of the section the field is shown under (see [Sections](#sections)) |
 
 Provide a **default value** by returning one from the interface method:
 
@@ -110,6 +111,32 @@ Provide a **default value** by returning one from the interface method:
 fun retryCount(): Int = 3
 fun enabled(): Boolean = true
 ```
+
+### Sections
+
+Group fields under headers by declaring sections once on the configuration interface, in display order, and naming
+a section on each field:
+
+```kotlin
+@ScriptConfigurationSections(
+    Section(key = "account", name = "Account"),
+    Section(key = "advanced", name = "Advanced", collapsed = true),
+)
+interface CheckoutConfig : ScriptConfiguration {
+    @ScriptConfigurationItem(keyName = "profile", name = "Profile", description = "Shown first, no header")
+    fun profile(): String
+
+    @ScriptConfigurationItem(keyName = "email", name = "Email", description = "Account email", section = "account")
+    fun email(): String
+
+    @ScriptConfigurationItem(keyName = "retries", name = "Retries", description = "Retry count", section = "advanced")
+    fun retries(): Int = 3
+}
+```
+
+Sections only affect layout: values don't nest and `keyName`s don't change. Fields without a section stay first and
+get no header, so existing scripts look the same. `position` orders fields within their section. A field naming an
+undeclared section key, or two sections with the same key, is rejected when the client loads the script.
 
 ### Complex lists
 
