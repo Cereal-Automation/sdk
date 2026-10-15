@@ -195,6 +195,49 @@ class ReadmeExamples {
     }
 
     // ------------------------------------------------------------------
+    // Placeholder and fetched options
+    // ------------------------------------------------------------------
+
+    object ServerUrlState : StateModifier {
+        override fun getVisibility(scriptConfig: ScriptConfig) = Visibility.VisibleRequired
+
+        override fun getError(scriptConfig: ScriptConfig): String? = null
+
+        override fun getPlaceholder(scriptConfig: ScriptConfig): String? = "http://localhost:11434/v1"
+    }
+
+    object ModelOptions : FieldOptions {
+        override val dependsOn = setOf("apiKey")
+
+        override suspend fun load(config: ScriptConfig): List<FieldOption> {
+            val key =
+                (config.valueForKey("apiKey") as? SecretScriptConfigValue)?.value
+                    ?: throw IllegalStateException("Enter your API key to list models")
+            check(key.reveal().isNotEmpty())
+            return listOf(FieldOption("small", "Small (recommended)"), FieldOption("large"))
+        }
+    }
+
+    interface ModelConfig : ScriptConfiguration {
+        @ScriptConfigurationItem(keyName = "apiKey", name = "API key", description = "Your provider key.")
+        fun apiKey(): Secret
+
+        @ScriptConfigurationItem(keyName = "model", name = "Model", description = "Model to use.", options = ModelOptions::class)
+        fun model(): String
+    }
+
+    @Test
+    fun `readme placeholder and fetched options compile`() {
+        val config =
+            object : ScriptConfig {
+                override fun valueForKey(key: String) = SecretScriptConfigValue(Secret("sk-test"))
+            }
+
+        assertEquals("http://localhost:11434/v1", ServerUrlState.getPlaceholder(config))
+        assertEquals("small", runBlocking { ModelOptions.load(config) }.first().id)
+    }
+
+    // ------------------------------------------------------------------
     // Secret — credentials in configuration
     // ------------------------------------------------------------------
 
