@@ -25,6 +25,11 @@ public abstract interface class com/cereal/sdk/Script {
 	public abstract fun execute (Lcom/cereal/sdk/ScriptConfiguration;Lcom/cereal/sdk/component/ComponentProvider;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun onFinish (Lcom/cereal/sdk/ScriptConfiguration;Lcom/cereal/sdk/component/ComponentProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun onStart (Lcom/cereal/sdk/ScriptConfiguration;Lcom/cereal/sdk/component/ComponentProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun taskActions ()Ljava/util/List;
+}
+
+public final class com/cereal/sdk/Script$DefaultImpls {
+	public static fun taskActions (Lcom/cereal/sdk/Script;)Ljava/util/List;
 }
 
 public abstract interface class com/cereal/sdk/ScriptConfiguration {
@@ -41,6 +46,12 @@ public abstract interface annotation class com/cereal/sdk/ScriptConfigurationIte
 }
 
 public abstract interface class com/cereal/sdk/ScriptConfigurationListItem {
+}
+
+public abstract interface class com/cereal/sdk/TaskAction {
+	public abstract fun getConfirm ()Ljava/lang/String;
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun run (Lcom/cereal/sdk/ScriptConfiguration;Lcom/cereal/sdk/component/ComponentProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class com/cereal/sdk/component/ComponentProvider {

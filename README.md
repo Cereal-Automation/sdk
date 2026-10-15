@@ -80,6 +80,27 @@ class MyScript : Script<MyScript.Config> {
 }
 ```
 
+### Task actions
+
+Override `taskActions()` to add items to an existing task's menu, for example to reset state the script learned. Each action runs with that task's own configuration and `ComponentProvider`, so it reaches the same preferences and files as the task's runs. The client disables the items while the task runs and shows the `confirm` text (if non-null) before running one.
+
+```kotlin
+object ForgetLearnedSteps : TaskAction<MyScript.Config> {
+    override val name = "Forget learned steps"
+    override val confirm = "The script will re-learn the steps on its next run."
+
+    override suspend fun run(configuration: MyScript.Config, provider: ComponentProvider): String? {
+        provider.preference().delete("learned_steps")
+        return "Forgot learned steps" // shown as the success message; null shows a generic one
+    }
+}
+
+// In MyScript:
+override fun taskActions(): List<TaskAction<Config>> = listOf(ForgetLearnedSteps)
+```
+
+Throw from `run` to report a failure; the exception message is shown to the user.
+
 ---
 
 ## Configuration
@@ -389,6 +410,13 @@ fun `script succeeds when item is available`() = runBlocking {
 
     assertEquals(ScriptStatus.Success, runner.status)
 }
+```
+
+Run a task action by name with `runTaskAction`, which returns the action's success message:
+
+```kotlin
+val message = TestScriptRunner(MyScript()).runTaskAction("Forget learned steps", config, factory)
+assertEquals("Forgot learned steps", message)
 ```
 
 `TestComponentProviderFactory` provides in-memory implementations of all components. Artifacts are the only output it collects for assertions, via `RecordingArtifactComponent.emitted` — the bundled logger and notification components write to the console rather than to an inspectable list.
