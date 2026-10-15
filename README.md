@@ -80,6 +80,29 @@ class MyScript : Script<MyScript.Config> {
 }
 ```
 
+### Task actions
+
+Requires client SDK **1.13.0** or newer.
+
+Override `taskActions()` to add items to an existing task's menu, for example to reset state the script learned. Each action runs with that task's own configuration and `ComponentProvider`, so it reaches the same preferences and files as the task's runs. The client disables the items while the task runs and shows the `confirm` text (if non-null) before running one.
+
+```kotlin
+object ForgetLearnedSteps : TaskAction<MyScript.Config> {
+    override val name = "Forget learned steps"
+    override val confirm = "The script will re-learn the steps on its next run."
+
+    override suspend fun run(configuration: MyScript.Config, provider: ComponentProvider): String? {
+        provider.preference().delete("learned_steps")
+        return "Forgot learned steps" // shown as the success message; null shows a generic one
+    }
+}
+
+// In MyScript:
+override fun taskActions(): List<TaskAction<Config>> = listOf(ForgetLearnedSteps)
+```
+
+Throw from `run` to report a failure; the exception message is shown to the user.
+
 ---
 
 ## Configuration
@@ -100,9 +123,10 @@ Key annotation properties:
 | `keyName` | Stable identifier — **never change after release** |
 | `name` | Label shown in the UI |
 | `description` | Help text shown in the UI |
-| `position` | Display order |
+| `position` | Display order (within the field's section) |
 | `valuePerTask` | Allow different values per task |
 | `isScriptIdentifier` | Marks which field identifies a script instance |
+| `section` | Key of the section the field is shown under (see [Sections](#sections)) |
 
 Provide a **default value** by returning one from the interface method:
 
@@ -110,6 +134,34 @@ Provide a **default value** by returning one from the interface method:
 fun retryCount(): Int = 3
 fun enabled(): Boolean = true
 ```
+
+### Sections
+
+Requires client SDK **1.13.0** or newer.
+
+Group fields under headers by declaring sections once on the configuration interface, in display order, and naming
+a section on each field:
+
+```kotlin
+@ScriptConfigurationSections(
+    Section(key = "account", name = "Account"),
+    Section(key = "advanced", name = "Advanced", collapsed = true),
+)
+interface CheckoutConfig : ScriptConfiguration {
+    @ScriptConfigurationItem(keyName = "profile", name = "Profile", description = "Shown first, no header")
+    fun profile(): String
+
+    @ScriptConfigurationItem(keyName = "email", name = "Email", description = "Account email", section = "account")
+    fun email(): String
+
+    @ScriptConfigurationItem(keyName = "retries", name = "Retries", description = "Retry count", section = "advanced")
+    fun retries(): Int = 3
+}
+```
+
+Sections only affect layout: values don't nest and `keyName`s don't change. Fields without a section stay first and
+get no header, so existing scripts look the same. `position` orders fields within their section. A field naming an
+undeclared section key, or two sections with the same key, is rejected when the client loads the script.
 
 ### Complex lists
 
@@ -146,7 +198,8 @@ for (target in configuration.targets()) {
 }
 ```
 
-**Permitted field types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums, and their nullable forms. `Proxy`,
+**Permitted field types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums, `Secret` (see
+[Credentials with Secret](#credentials-with-secret)), and their nullable forms. `Proxy`,
 `RandomProxy`, nested lists and nested record types are rejected when the client loads the script.
 
 **Cardinality and nullability:** a non-nullable `List<T>` always holds at least one row at runtime. A nullable
@@ -243,8 +296,24 @@ that on a **per-task** item `valueForKey` returns a `SequenceScriptConfigValue` 
 - **Declaring an SDK version below 1.11.0 while using `Secret`** means your script fails to load on older clients rather
   than failing at runtime — a safe failure, but set your manifest's declared SDK version to match your dependency.
 
-Not supported: a secret as the script identifier, and lists of secrets. Both **fail at load time** — model per-account
-credentials with `valuePerTask` instead of a list. Default values are also unsupported, but with a weaker failure mode:
+Since client SDK **1.13.0**, a complex-list row may hold a `Secret` field, so a list of named credentials is a record with a label and a secret:
+
+```kotlin
+interface Account : ScriptConfigurationListItem {
+    @ScriptConfigurationItem(keyName = "label", name = "Label", description = "Account label")
+    fun label(): String
+
+    @ScriptConfigurationItem(keyName = "token", name = "Token", description = "Account API token")
+    fun token(): Secret
+}
+```
+
+Each row's secret reaches your script as a `Secret` (call `reveal()`), and the list item's own `stateModifier` sees it
+as a `SecretScriptConfigValue` inside the `ListScriptConfigValue` rows. Row fields still take no `stateModifier` of
+their own, so report row errors from the list item's `getError`.
+
+Not supported: a secret as the script identifier. It **fails at load time**. Default values are also unsupported, but
+with a weaker failure mode:
 a default implementation on a `Secret` item is **silently not extracted** rather than rejected, so don't write one and
 expect either a default or an error.
 
@@ -265,6 +334,52 @@ object ShowWhenEnabled : StateModifier {
     override fun getError(config: ScriptConfig): String? = null
 }
 ```
+
+Requires client SDK **1.13.0** or newer for `getPlaceholder`.
+
+Override `getPlaceholder` to show hint text while a field is empty. It defaults to `null`, so existing modifiers compile unchanged. A placeholder is never stored; use a default value if you want a real pre-filled value.
+
+```kotlin
+object ServerUrlState : StateModifier {
+    override fun getVisibility(config: ScriptConfig) = Visibility.VisibleRequired
+    override fun getError(config: ScriptConfig): String? = null
+    override fun getPlaceholder(config: ScriptConfig): String? = "http://localhost:11434/v1"
+}
+```
+
+### Fetched options
+
+Requires client SDK **1.13.0** or newer.
+
+A top-level `String` or `String?` item can offer choices fetched at form time. Set `options` to a `FieldOptions` `object` (like `stateModifier`, a `class` fails to load). The field becomes an editable combo box that always accepts free text, and only the picked option's `id` is stored.
+
+```kotlin
+object ModelOptions : FieldOptions {
+    override val dependsOn = setOf("apiKey")
+
+    override suspend fun load(config: ScriptConfig): List<FieldOption> {
+        val key = (config.valueForKey("apiKey") as? SecretScriptConfigValue)?.value
+            ?: throw IllegalStateException("Enter your API key to list models")
+        // Call your provider with key.reveal() here; order and label the result yourself.
+        return listOf(FieldOption("small", "Small (recommended)"), FieldOption("large"))
+    }
+}
+
+interface MyConfig : ScriptConfiguration {
+    @ScriptConfigurationItem(keyName = "apiKey", name = "API key", description = "Your provider key.")
+    fun apiKey(): Secret
+
+    @ScriptConfigurationItem(keyName = "model", name = "Model", description = "Model to use.", options = ModelOptions::class)
+    fun model(): String
+}
+```
+
+- `load` runs only when the user opens the dropdown or presses refresh, off the UI thread, with a ~15 s timeout. Editing a `dependsOn` field or closing the form cancels it.
+- `config` holds only the `dependsOn` fields, with their current unsaved values. Secrets arrive as `SecretScriptConfigValue`. The call is made even when those fields are empty.
+- Options are shown in the order you return them, so filter, sort and label them in `load`.
+- Throw to report a failure: the exception message is shown inline under the field with a Retry action.
+- `options` on anything other than a top-level `String` / `String?` item **fails at load time**.
+- Form-time code has no network restriction; see [ADR 0001](docs/adr/0001-form-time-code-is-trusted.md).
 
 ---
 
@@ -389,6 +504,13 @@ fun `script succeeds when item is available`() = runBlocking {
 
     assertEquals(ScriptStatus.Success, runner.status)
 }
+```
+
+Run a task action by name with `runTaskAction`, which returns the action's success message:
+
+```kotlin
+val message = TestScriptRunner(MyScript()).runTaskAction("Forget learned steps", config, factory)
+assertEquals("Forgot learned steps", message)
 ```
 
 `TestComponentProviderFactory` provides in-memory implementations of all components. Artifacts are the only output it collects for assertions, via `RecordingArtifactComponent.emitted` — the bundled logger and notification components write to the console rather than to an inspectable list.

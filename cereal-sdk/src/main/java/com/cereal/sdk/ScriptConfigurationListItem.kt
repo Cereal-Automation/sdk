@@ -27,9 +27,12 @@ package com.cereal.sdk
  * }
  * ```
  *
- * **Permitted field types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums, and their nullable
- * forms. `Proxy`, `RandomProxy`, nested lists and nested record types are rejected when the client
- * loads the script.
+ * **Permitted field types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums,
+ * [com.cereal.sdk.models.Secret], and their nullable forms. `Proxy`, `RandomProxy`, nested lists and
+ * nested record types are rejected when the client loads the script. A `Secret` field arrives in your
+ * script as a [com.cereal.sdk.models.Secret] and in the list item's state modifier as a
+ * [com.cereal.sdk.statemodifier.ScriptConfigValue.SecretScriptConfigValue]. `Secret` row fields are
+ * supported since 1.13.0.
  *
  * **Cardinality:** a non-nullable `List<T>` is guaranteed to hold at least one row when your script
  * runs. A nullable `List<T>?` arrives as `null` when the user supplied no rows, so "not configured"

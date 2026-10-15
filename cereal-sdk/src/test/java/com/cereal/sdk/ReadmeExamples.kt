@@ -31,6 +31,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class ReadmeExamples {
@@ -91,6 +92,87 @@ class ReadmeExamples {
                 }
             val runner = TestScriptRunner(script)
             runner.run(config, TestComponentProviderFactory())
+        }
+
+    // ------------------------------------------------------------------
+    // Sections
+    // ------------------------------------------------------------------
+
+    @ScriptConfigurationSections(
+        Section(key = "account", name = "Account"),
+        Section(key = "advanced", name = "Advanced", collapsed = true),
+    )
+    interface CheckoutConfig : ScriptConfiguration {
+        @ScriptConfigurationItem(keyName = "profile", name = "Profile", description = "Shown first, no header")
+        fun profile(): String
+
+        @ScriptConfigurationItem(keyName = "email", name = "Email", description = "Account email", section = "account")
+        fun email(): String
+
+        @ScriptConfigurationItem(keyName = "retries", name = "Retries", description = "Retry count", section = "advanced")
+        fun retries(): Int = 3
+    }
+
+    @Test
+    fun `readme sections compiles`() {
+        val configuration =
+            object : CheckoutConfig {
+                override fun profile() = "Main"
+
+                override fun email() = "a@b.c"
+            }
+
+        assertEquals(3, configuration.retries())
+    }
+
+    // ------------------------------------------------------------------
+    // Task actions
+    // ------------------------------------------------------------------
+
+    object ReadmeForgetLearnedSteps : TaskAction<ReadmeConfig> {
+        override val name = "Forget learned steps"
+        override val confirm = "The script will re-learn the steps on its next run."
+
+        override suspend fun run(
+            configuration: ReadmeConfig,
+            provider: ComponentProvider,
+        ): String? {
+            provider.preference().delete("learned_steps")
+            return "Forgot learned steps"
+        }
+    }
+
+    @Test
+    fun `readme task actions compile`() =
+        runBlocking {
+            val script =
+                object : Script<ReadmeConfig> {
+                    override suspend fun onStart(
+                        configuration: ReadmeConfig,
+                        provider: ComponentProvider,
+                    ): Boolean = true
+
+                    override suspend fun execute(
+                        configuration: ReadmeConfig,
+                        provider: ComponentProvider,
+                        statusUpdate: suspend (String) -> Unit,
+                    ): ExecutionResult = ExecutionResult.Success("Done")
+
+                    override suspend fun onFinish(
+                        configuration: ReadmeConfig,
+                        provider: ComponentProvider,
+                    ) {}
+
+                    override fun taskActions(): List<TaskAction<ReadmeConfig>> = listOf(ReadmeForgetLearnedSteps)
+                }
+            val config = mockk<ReadmeConfig>()
+            val factory = TestComponentProviderFactory()
+            val preferences = factory.create().preference()
+            preferences.setString("learned_steps", "steps")
+
+            val message = TestScriptRunner(script).runTaskAction("Forget learned steps", config, factory)
+            assertEquals("Forgot learned steps", message)
+            assertNull(preferences.getString("learned_steps"))
         }
 
     // ------------------------------------------------------------------
@@ -195,6 +277,49 @@ class ReadmeExamples {
     }
 
     // ------------------------------------------------------------------
+    // Placeholder (client SDK 1.13.0+) and fetched options
+    // ------------------------------------------------------------------
+
+    object ServerUrlState : StateModifier {
+        override fun getVisibility(scriptConfig: ScriptConfig) = Visibility.VisibleRequired
+
+        override fun getError(scriptConfig: ScriptConfig): String? = null
+
+        override fun getPlaceholder(scriptConfig: ScriptConfig): String? = "http://localhost:11434/v1"
+    }
+
+    object ModelOptions : FieldOptions {
+        override val dependsOn = setOf("apiKey")
+
+        override suspend fun load(config: ScriptConfig): List<FieldOption> {
+            val key =
+                (config.valueForKey("apiKey") as? SecretScriptConfigValue)?.value
+                    ?: throw IllegalStateException("Enter your API key to list models")
+            check(key.reveal().isNotEmpty())
+            return listOf(FieldOption("small", "Small (recommended)"), FieldOption("large"))
+        }
+    }
+
+    interface ModelConfig : ScriptConfiguration {
+        @ScriptConfigurationItem(keyName = "apiKey", name = "API key", description = "Your provider key.")
+        fun apiKey(): Secret
+
+        @ScriptConfigurationItem(keyName = "model", name = "Model", description = "Model to use.", options = ModelOptions::class)
+        fun model(): String
+    }
+
+    @Test
+    fun `readme placeholder and fetched options compile`() {
+        val config =
+            object : ScriptConfig {
+                override fun valueForKey(key: String) = SecretScriptConfigValue(Secret("sk-test"))
+            }
+
+        assertEquals("http://localhost:11434/v1", ServerUrlState.getPlaceholder(config))
+        assertEquals("small", runBlocking { ModelOptions.load(config) }.first().id)
+    }
+
+    // ------------------------------------------------------------------
     // Secret — credentials in configuration
     // ------------------------------------------------------------------
 
@@ -280,6 +405,26 @@ class ReadmeExamples {
         object : ScriptConfig {
             override fun valueForKey(key: String) = value
         }
+
+    interface Account : ScriptConfigurationListItem {
+        @ScriptConfigurationItem(keyName = "label", name = "Label", description = "Account label")
+        fun label(): String
+
+        @ScriptConfigurationItem(keyName = "token", name = "Token", description = "Account API token")
+        fun token(): Secret
+    }
+
+    @Test
+    fun `readme secret in list row compiles`() {
+        val account =
+            object : Account {
+                override fun label() = "main"
+
+                override fun token() = Secret("sk-live-1")
+            }
+
+        assertEquals("sk-live-1", account.token().reveal())
+    }
 
     // ------------------------------------------------------------------
     // Logger

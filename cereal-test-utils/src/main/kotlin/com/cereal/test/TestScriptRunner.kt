@@ -52,6 +52,24 @@ class TestScriptRunner<T : ScriptConfiguration>(
         }
     }
 
+    /**
+     * Runs the script's [com.cereal.sdk.TaskAction] with the given [name], as the client does from a task's menu, against
+     * a new provider from [componentProviderFactory]. With [com.cereal.test.components.TestComponentProviderFactory],
+     * preferences live in in-memory storage shared by every provider, so values seeded beforehand are visible to the
+     * action. Returns the action's success message; exceptions propagate.
+     */
+    suspend fun runTaskAction(
+        name: String,
+        configuration: T,
+        componentProviderFactory: ComponentProviderFactory,
+    ): String? {
+        val action =
+            script.taskActions().firstOrNull { it.name == name }
+                ?: throw IllegalArgumentException("Script has no task action named '$name'.")
+        logger.logMessage("Running task action '$name'...")
+        return action.run(configuration, componentProviderFactory.create())
+    }
+
     private suspend fun callOnStart(
         configuration: T,
         componentProvider: ComponentProvider,

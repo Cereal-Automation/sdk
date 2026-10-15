@@ -56,4 +56,14 @@ interface Script<T : ScriptConfiguration> {
         configuration: T,
         provider: ComponentProvider,
     )
+
+    /**
+     * Actions a user can run on an existing task from the task's menu, outside of [onStart], [execute] and [onFinish].
+     * See [TaskAction].
+     *
+     * @return The actions in menu order. Defaults to none.
+     *
+     * @since 1.13.0
+     */
+    fun taskActions(): List<TaskAction<T>> = emptyList()
 }
