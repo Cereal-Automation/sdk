@@ -331,6 +331,48 @@ object ShowWhenEnabled : StateModifier {
 }
 ```
 
+Override `getPlaceholder` to show hint text while a field is empty. It defaults to `null`, so existing modifiers compile unchanged. A placeholder is never stored; use a default value if you want a real pre-filled value.
+
+```kotlin
+object ServerUrlState : StateModifier {
+    override fun getVisibility(config: ScriptConfig) = Visibility.VisibleRequired
+    override fun getError(config: ScriptConfig): String? = null
+    override fun getPlaceholder(config: ScriptConfig): String? = "http://localhost:11434/v1"
+}
+```
+
+### Fetched options
+
+A top-level `String` or `String?` item can offer choices fetched at form time. Set `options` to a `FieldOptions` `object` (like `stateModifier`, a `class` fails to load). The field becomes an editable combo box that always accepts free text, and only the picked option's `id` is stored.
+
+```kotlin
+object ModelOptions : FieldOptions {
+    override val dependsOn = setOf("apiKey")
+
+    override suspend fun load(config: ScriptConfig): List<FieldOption> {
+        val key = (config.valueForKey("apiKey") as? SecretScriptConfigValue)?.value
+            ?: throw IllegalStateException("Enter your API key to list models")
+        // Call your provider with key.reveal() here; order and label the result yourself.
+        return listOf(FieldOption("small", "Small (recommended)"), FieldOption("large"))
+    }
+}
+
+interface MyConfig : ScriptConfiguration {
+    @ScriptConfigurationItem(keyName = "apiKey", name = "API key", description = "Your provider key.")
+    fun apiKey(): Secret
+
+    @ScriptConfigurationItem(keyName = "model", name = "Model", description = "Model to use.", options = ModelOptions::class)
+    fun model(): String
+}
+```
+
+- `load` runs only when the user opens the dropdown or presses refresh, off the UI thread, with a ~15 s timeout. Editing a `dependsOn` field or closing the form cancels it.
+- `config` holds only the `dependsOn` fields, with their current unsaved values. Secrets arrive as `SecretScriptConfigValue`. The call is made even when those fields are empty.
+- Options are shown in the order you return them, so filter, sort and label them in `load`.
+- Throw to report a failure: the exception message is shown inline under the field with a Retry action.
+- `options` on anything other than a top-level `String` / `String?` item **fails at load time**.
+- Form-time code has no network restriction; see [ADR 0001](docs/adr/0001-form-time-code-is-trusted.md).
+
 ---
 
 ## Components

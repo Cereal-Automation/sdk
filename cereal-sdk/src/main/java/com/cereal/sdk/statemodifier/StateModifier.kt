@@ -25,6 +25,17 @@ interface StateModifier {
      * when the value is valid.
      */
     fun getError(scriptConfig: ScriptConfig): String?
+
+    /**
+     * Hint text shown while the field is empty. Called whenever [getVisibility] is. A default value still pre-fills
+     * the field as a real value; a placeholder is never stored.
+     *
+     * @param scriptConfig The raw script configuration containing the values the user has already filled in while configuring
+     * the script.
+     *
+     * @return the placeholder text, or null for none (the default).
+     */
+    fun getPlaceholder(scriptConfig: ScriptConfig): String? = null
 }
 
 /**
