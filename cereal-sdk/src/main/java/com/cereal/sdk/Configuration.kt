@@ -62,6 +62,11 @@ interface ScriptConfiguration
  * [isScriptIdentifier] = true (ignored for per-task or child script items).
  *
  * Use [stateModifier] to dynamically hide, disable, or validate an item based on other inputs.
+ *
+ * Set [section] to the key of a [Section] declared in [ScriptConfigurationSections] on the configuration interface
+ * to show the item under that section's header. Items without a section are shown first, without a header. A
+ * section key that is not declared is rejected when the platform loads the script. [position] orders items within
+ * their section. Sections only affect layout: the item's [keyName] and value are unchanged.
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
@@ -73,4 +78,5 @@ annotation class ScriptConfigurationItem(
     val valuePerTask: Boolean = false,
     val stateModifier: KClass<out StateModifier> = DefaultStateModifier::class,
     val isScriptIdentifier: Boolean = false,
+    val section: String = "",
 )

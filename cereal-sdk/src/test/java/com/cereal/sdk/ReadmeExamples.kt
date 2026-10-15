@@ -94,6 +94,37 @@ class ReadmeExamples {
         }
 
     // ------------------------------------------------------------------
+    // Sections
+    // ------------------------------------------------------------------
+
+    @ScriptConfigurationSections(
+        Section(key = "account", name = "Account"),
+        Section(key = "advanced", name = "Advanced", collapsed = true),
+    )
+    interface CheckoutConfig : ScriptConfiguration {
+        @ScriptConfigurationItem(keyName = "profile", name = "Profile", description = "Shown first, no header")
+        fun profile(): String
+
+        @ScriptConfigurationItem(keyName = "email", name = "Email", description = "Account email", section = "account")
+        fun email(): String
+
+        @ScriptConfigurationItem(keyName = "retries", name = "Retries", description = "Retry count", section = "advanced")
+        fun retries(): Int = 3
+    }
+
+    @Test
+    fun `readme sections compiles`() {
+        val configuration =
+            object : CheckoutConfig {
+                override fun profile() = "Main"
+
+                override fun email() = "a@b.c"
+            }
+
+        assertEquals(3, configuration.retries())
+    }
+
+    // ------------------------------------------------------------------
     // Complex lists
     // ------------------------------------------------------------------
 
