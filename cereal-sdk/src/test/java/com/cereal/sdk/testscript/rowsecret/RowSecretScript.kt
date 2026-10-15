@@ -16,11 +16,11 @@ interface AccountRow : ScriptConfigurationListItem {
     @ScriptConfigurationItem(keyName = "label", name = "Label", description = "Account label")
     fun label(): String
 
-    @ScriptConfigurationItem(keyName = "value", name = "Token", description = "Account API token")
-    fun value(): Secret
+    @ScriptConfigurationItem(keyName = "token", name = "Token", description = "Account API token")
+    fun token(): Secret
 
-    @ScriptConfigurationItem(keyName = "backup", name = "Backup token", description = "Optional backup token")
-    fun backupValue(): Secret?
+    @ScriptConfigurationItem(keyName = "backupToken", name = "Backup token", description = "Optional backup token")
+    fun backupToken(): Secret?
 }
 
 interface RowSecretConfiguration : ScriptConfiguration {
@@ -38,7 +38,7 @@ object EveryAccountHasAToken : StateModifier {
 
     override fun getError(scriptConfig: ScriptConfig): String? {
         val rows = (scriptConfig.valueForKey("accounts") as? ScriptConfigValue.ListScriptConfigValue)?.items.orEmpty()
-        return if (rows.all { it.valueForKey("value") is ScriptConfigValue.SecretScriptConfigValue }) {
+        return if (rows.all { it.valueForKey("token") is ScriptConfigValue.SecretScriptConfigValue }) {
             null
         } else {
             "Every account needs a token."
@@ -47,7 +47,7 @@ object EveryAccountHasAToken : StateModifier {
 }
 
 class RowSecretScript : Script<RowSecretConfiguration> {
-    val revealed = mutableListOf<Pair<String, String>>()
+    val revealed = mutableListOf<Triple<String, String, String?>>()
 
     override suspend fun onStart(
         configuration: RowSecretConfiguration,
@@ -59,7 +59,7 @@ class RowSecretScript : Script<RowSecretConfiguration> {
         provider: ComponentProvider,
         statusUpdate: suspend (message: String) -> Unit,
     ): ExecutionResult {
-        configuration.accounts().forEach { revealed += it.label() to it.value().reveal() }
+        configuration.accounts().forEach { revealed += Triple(it.label(), it.token().reveal(), it.backupToken()?.reveal()) }
         return ExecutionResult.Success("Signed in")
     }
 

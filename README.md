@@ -335,6 +335,8 @@ object ShowWhenEnabled : StateModifier {
 }
 ```
 
+Requires client SDK **1.13.0** or newer for `getPlaceholder`.
+
 Override `getPlaceholder` to show hint text while a field is empty. It defaults to `null`, so existing modifiers compile unchanged. A placeholder is never stored; use a default value if you want a real pre-filled value.
 
 ```kotlin

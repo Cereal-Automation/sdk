@@ -53,8 +53,10 @@ class TestScriptRunner<T : ScriptConfiguration>(
     }
 
     /**
-     * Runs the script's [com.cereal.sdk.TaskAction] with the given [name] against a fresh component provider, as the
-     * client does from a task's menu. Returns the action's success message; exceptions propagate.
+     * Runs the script's [com.cereal.sdk.TaskAction] with the given [name], as the client does from a task's menu, against
+     * a new provider from [componentProviderFactory]. With [com.cereal.test.components.TestComponentProviderFactory],
+     * preferences live in in-memory storage shared by every provider, so values seeded beforehand are visible to the
+     * action. Returns the action's success message; exceptions propagate.
      */
     suspend fun runTaskAction(
         name: String,

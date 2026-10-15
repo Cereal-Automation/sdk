@@ -31,6 +31,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class ReadmeExamples {
@@ -166,9 +167,12 @@ class ReadmeExamples {
                 }
             val config = mockk<ReadmeConfig>()
             val factory = TestComponentProviderFactory()
+            val preferences = factory.create().preference()
+            preferences.setString("learned_steps", "steps")
 
             val message = TestScriptRunner(script).runTaskAction("Forget learned steps", config, factory)
             assertEquals("Forgot learned steps", message)
+            assertNull(preferences.getString("learned_steps"))
         }
 
     // ------------------------------------------------------------------
@@ -273,7 +277,7 @@ class ReadmeExamples {
     }
 
     // ------------------------------------------------------------------
-    // Placeholder and fetched options
+    // Placeholder (client SDK 1.13.0+) and fetched options
     // ------------------------------------------------------------------
 
     object ServerUrlState : StateModifier {

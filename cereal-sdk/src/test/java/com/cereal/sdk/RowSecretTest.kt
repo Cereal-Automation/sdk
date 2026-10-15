@@ -17,35 +17,37 @@ import kotlin.test.assertNull
 
 class RowSecretTest {
     @Test
-    fun `script receives a row secret it can reveal`() =
+    fun `script receives row secrets it can reveal, with a nullable one set or null`() =
         runBlocking {
+            fun account(
+                label: String,
+                token: String,
+                backupToken: String?,
+            ) = object : AccountRow {
+                override fun label() = label
+
+                override fun token() = Secret(token)
+
+                override fun backupToken() = backupToken?.let(::Secret)
+            }
             val script = RowSecretScript()
             val runner = TestScriptRunner(script)
             val configuration =
                 object : RowSecretConfiguration {
-                    override fun accounts(): List<AccountRow> =
-                        listOf(
-                            object : AccountRow {
-                                override fun label() = "main"
-
-                                override fun value() = Secret("hunter2")
-
-                                override fun backupValue(): Secret? = null
-                            },
-                        )
+                    override fun accounts() = listOf(account("main", "hunter2", "hunter3"), account("spare", "swordfish", null))
                 }
 
             runner.run(configuration, TestComponentProviderFactory())
 
             assertEquals(ScriptStatus.Success, runner.status)
-            assertEquals(listOf("main" to "hunter2"), script.revealed)
+            assertEquals(listOf(Triple("main", "hunter2", "hunter3"), Triple("spare", "swordfish", null)), script.revealed)
         }
 
     @Test
     fun `list modifier sees a row secret as SecretScriptConfigValue`() {
         fun row(token: ScriptConfigValue) =
             object : ScriptConfig {
-                override fun valueForKey(key: String) = if (key == "value") token else ScriptConfigValue.NullScriptConfigValue
+                override fun valueForKey(key: String) = if (key == "token") token else ScriptConfigValue.NullScriptConfigValue
             }
 
         fun list(vararg rows: ScriptConfig) =

@@ -48,6 +48,7 @@ class FieldOptionsTest {
     @Test
     fun `placeholder defaults to null and can be overridden`() {
         assertNull(DefaultStateModifier.getPlaceholder(config()))
+        assertEquals("provider", item("provider").keyName)
         assertEquals("openai-recommended", ModelState.getPlaceholder(config("provider" to StringScriptConfigValue("openai"))))
     }
 }

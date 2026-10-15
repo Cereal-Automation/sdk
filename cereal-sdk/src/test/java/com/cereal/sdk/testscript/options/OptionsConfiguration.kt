@@ -15,6 +15,9 @@ interface OptionsConfiguration : ScriptConfiguration {
     @ScriptConfigurationItem(keyName = "apiKey", name = "API key", description = "Key for the provider.")
     fun apiKey(): Secret
 
+    @ScriptConfigurationItem(keyName = "provider", name = "Provider", description = "Provider name, used in the model placeholder.")
+    fun provider(): String
+
     @ScriptConfigurationItem(
         keyName = "model",
         name = "Model",

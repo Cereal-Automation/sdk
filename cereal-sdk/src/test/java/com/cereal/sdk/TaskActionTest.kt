@@ -18,6 +18,7 @@ class TaskActionTest {
     fun `task action runs against the task's preferences and returns its message`() =
         runBlocking {
             val factory = TestComponentProviderFactory()
+            // TestPreferenceComponent storage is shared by all providers, standing in for the task's own preferences.
             val preferences = factory.create().preference()
             preferences.setString("task-action-test-cache", "learned steps")
             val configuration = mockk<TaskActionConfiguration> { every { cacheKey() } returns "task-action-test-cache" }
