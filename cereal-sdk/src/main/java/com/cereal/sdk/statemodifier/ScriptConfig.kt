@@ -91,7 +91,8 @@ sealed class ScriptConfigValue {
      * ```
      *
      * A row omits keys the user left blank, so those read back as
-     * [ScriptConfigValue.NullScriptConfigValue].
+     * [ScriptConfigValue.NullScriptConfigValue]. A `Secret` row field reads back as
+     * [ScriptConfigValue.SecretScriptConfigValue].
      */
     data class ListScriptConfigValue(
         val items: List<ScriptConfig>,

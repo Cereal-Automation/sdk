@@ -146,7 +146,8 @@ for (target in configuration.targets()) {
 }
 ```
 
-**Permitted field types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums, and their nullable forms. `Proxy`,
+**Permitted field types:** `String`, `Int`, `Float`, `Double`, `Boolean`, enums, `Secret` (see
+[Credentials with Secret](#credentials-with-secret)), and their nullable forms. `Proxy`,
 `RandomProxy`, nested lists and nested record types are rejected when the client loads the script.
 
 **Cardinality and nullability:** a non-nullable `List<T>` always holds at least one row at runtime. A nullable
@@ -243,8 +244,24 @@ that on a **per-task** item `valueForKey` returns a `SequenceScriptConfigValue` 
 - **Declaring an SDK version below 1.11.0 while using `Secret`** means your script fails to load on older clients rather
   than failing at runtime — a safe failure, but set your manifest's declared SDK version to match your dependency.
 
-Not supported: a secret as the script identifier, and lists of secrets. Both **fail at load time** — model per-account
-credentials with `valuePerTask` instead of a list. Default values are also unsupported, but with a weaker failure mode:
+A complex-list row may hold a `Secret` field, so a list of named credentials is a record with a label and a secret:
+
+```kotlin
+interface Account : ScriptConfigurationListItem {
+    @ScriptConfigurationItem(keyName = "label", name = "Label", description = "Account label")
+    fun label(): String
+
+    @ScriptConfigurationItem(keyName = "token", name = "Token", description = "Account API token")
+    fun token(): Secret
+}
+```
+
+Each row's secret reaches your script as a `Secret` (call `reveal()`), and the list item's own `stateModifier` sees it
+as a `SecretScriptConfigValue` inside the `ListScriptConfigValue` rows. Row fields still take no `stateModifier` of
+their own, so report row errors from the list item's `getError`.
+
+Not supported: a secret as the script identifier. It **fails at load time**. Default values are also unsupported, but
+with a weaker failure mode:
 a default implementation on a `Secret` item is **silently not extracted** rather than rejected, so don't write one and
 expect either a default or an error.
 
