@@ -46,10 +46,9 @@ class LlmScript : Script<LlmConfiguration> {
             )
         return try {
             val response = provider.llm().complete(request)
-            val nextTurns = request.turns + response.assistantTurn
             when (response.stopReason) {
                 StopReason.EndTurn -> ExecutionResult.Success(response.structuredJson ?: response.text)
-                StopReason.ToolUse -> ExecutionResult.Success("${response.toolCalls.size} tool calls after ${nextTurns.size} turns")
+                StopReason.ToolUse -> ExecutionResult.Success("${response.toolCalls.size} tool calls")
                 StopReason.MaxTokens, StopReason.Refusal -> ExecutionResult.Error("No answer (${response.usage.output} tokens)")
             }
         } catch (e: LlmException.NotConfigured) {

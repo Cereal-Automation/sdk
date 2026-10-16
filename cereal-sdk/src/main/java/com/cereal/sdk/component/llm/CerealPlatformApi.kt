@@ -8,6 +8,8 @@ package com.cereal.sdk.component.llm
  * [LlmResponse], so a script can't prefill one (some models reject that) and provider data such as thinking blocks
  * survives the round trip untouched. To build responses in tests, use the builders in `cereal-test-utils`.
  *
+ * The opt-in is enforced by the Kotlin compiler only; Java callers and reflection bypass it.
+ *
  * @since 1.14.0
  */
 @RequiresOptIn(

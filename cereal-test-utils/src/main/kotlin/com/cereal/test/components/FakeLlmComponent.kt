@@ -57,7 +57,10 @@ fun llmResponse(
     toolCalls: List<LlmToolCall> = emptyList(),
     structuredJson: String? = null,
     stopReason: StopReason = StopReason.EndTurn,
-): LlmResponse = LlmResponse(text, toolCalls, structuredJson, stopReason, LlmUsage(0, 0, 0, 0), "fake", null)
+): LlmResponse {
+    require(structuredJson == null || stopReason == StopReason.EndTurn) { "structuredJson is only set when stopReason is EndTurn." }
+    return LlmResponse(text, toolCalls, structuredJson, stopReason, LlmUsage(0, 0, 0, 0), "fake", null)
+}
 
 /** Builds the [LlmException.InvalidOutput] a real provider throws when the model's output fails validation. */
 @OptIn(CerealPlatformApi::class)

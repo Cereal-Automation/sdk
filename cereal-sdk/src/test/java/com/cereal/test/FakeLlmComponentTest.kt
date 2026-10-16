@@ -93,4 +93,10 @@ class FakeLlmComponentTest {
         assertEquals(null, response.structuredJson)
         assertEquals(emptyList(), response.toolCalls)
     }
+
+    @Test
+    fun `llmResponse rejects structuredJson unless stopReason is EndTurn`() {
+        assertFailsWith<IllegalArgumentException> { llmResponse(structuredJson = "{}", stopReason = StopReason.ToolUse) }
+        assertEquals("{}", llmResponse(structuredJson = "{}").structuredJson)
+    }
 }

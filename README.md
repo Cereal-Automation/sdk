@@ -445,7 +445,9 @@ persist the artifact — wrap the call yourself if the artifact is optional.
 
 ### LLM (the user's configured model)
 
-Requires client SDK **1.14.0** or newer. Set `"sdk_version": "1.14.0"` (or higher) in your script's `manifest.json`; nothing fills it in for you, and without it an older client fails your script at runtime instead of asking the user to update.
+> Available since SDK version 1.14.0.
+
+Set `"sdk_version": "1.14.0"` (or higher) in your script's `manifest.json`; nothing fills it in for you, and without it an older client fails your script at runtime instead of asking the user to update.
 
 Call the model the user set up in Settings → AI. The client makes the HTTP call, so the API key never reaches your script, and you need no HTTP client or JSON library. Each `complete` makes exactly one model call; JSON goes in and out as `String`s.
 

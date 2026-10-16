@@ -48,7 +48,7 @@ class LlmComponentTest {
 
             assertEquals(ScriptStatus.Error, runner.status)
             val request = received.single()
-            assertEquals(4096, request.maxTokens)
+            assertEquals(LlmRequest.DEFAULT_MAX_TOKENS, request.maxTokens)
             assertEquals(ToolChoice.None, request.toolChoice)
             assertEquals(
                 LlmTurn.User(

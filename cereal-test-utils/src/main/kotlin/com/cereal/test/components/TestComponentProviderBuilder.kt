@@ -51,6 +51,7 @@ class TestComponentProviderFactory : ComponentProviderFactory {
      * The [FakeLlmComponent] returned by `provider.llm()`. Script it with [FakeLlmComponent.queue] or
      * [FakeLlmComponent.responder] and assert on [FakeLlmComponent.requests]. Throws
      * [com.cereal.sdk.component.llm.LlmException.NotConfigured] until configured.
+     * Shared across [create] calls so tests can configure it and assert on it.
      */
     val llm = FakeLlmComponent()
 
