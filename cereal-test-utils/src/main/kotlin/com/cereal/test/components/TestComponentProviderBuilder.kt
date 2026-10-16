@@ -6,9 +6,6 @@ import com.cereal.sdk.component.ComponentProvider
 import com.cereal.sdk.component.artifact.ArtifactComponent
 import com.cereal.sdk.component.license.LicenseComponent
 import com.cereal.sdk.component.llm.LlmComponent
-import com.cereal.sdk.component.llm.LlmException
-import com.cereal.sdk.component.llm.LlmRequest
-import com.cereal.sdk.component.llm.LlmResponse
 import com.cereal.sdk.component.logger.LoggerComponent
 import com.cereal.sdk.component.notification.NotificationComponent
 import com.cereal.sdk.component.preference.PreferenceComponent
@@ -50,6 +47,13 @@ class TestComponentProviderFactory : ComponentProviderFactory {
      */
     var requestInputResults: List<String> = emptyList()
 
+    /**
+     * The [FakeLlmComponent] returned by `provider.llm()`. Script it with [FakeLlmComponent.queue] or
+     * [FakeLlmComponent.responder] and assert on [FakeLlmComponent.requests]. Throws
+     * [com.cereal.sdk.component.llm.LlmException.NotConfigured] until configured.
+     */
+    val llm = FakeLlmComponent()
+
     override fun create(): ComponentProvider =
         TestComponentProvider(
             ConsoleLoggerComponent(),
@@ -59,15 +63,8 @@ class TestComponentProviderFactory : ComponentProviderFactory {
             TestScriptLauncherComponent(this, childScriptConfigurations),
             TestUserInteractionComponent(showUrlResults, showHtmlResults, requestInputResults),
             RecordingArtifactComponent(),
-            NotConfiguredLlmComponent,
+            llm,
         )
-}
-
-// ponytail: stand-in until the scriptable fake LlmComponent (desktop-client#105) replaces it.
-
-/** [LlmComponent] for a user with no AI provider set up: every call throws [LlmException.NotConfigured]. */
-private object NotConfiguredLlmComponent : LlmComponent {
-    override suspend fun complete(request: LlmRequest): LlmResponse = throw LlmException.NotConfigured()
 }
 
 class TestComponentProvider(
