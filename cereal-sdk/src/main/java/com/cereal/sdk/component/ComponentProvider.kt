@@ -2,6 +2,7 @@ package com.cereal.sdk.component
 
 import com.cereal.sdk.component.artifact.ArtifactComponent
 import com.cereal.sdk.component.license.LicenseComponent
+import com.cereal.sdk.component.llm.LlmComponent
 import com.cereal.sdk.component.logger.LoggerComponent
 import com.cereal.sdk.component.notification.NotificationComponent
 import com.cereal.sdk.component.preference.PreferenceComponent
@@ -36,4 +37,13 @@ interface ComponentProvider {
 
     /** Returns the artifact component for emitting downloadable file output produced by the script. */
     fun artifact(): ArtifactComponent
+
+    /**
+     * Returns the LLM component for calling the model the user configured in Settings → AI.
+     *
+     * Scripts that call this must set `"sdk_version": "1.14.0"` (or higher) in `manifest.json`.
+     *
+     * @since 1.14.0
+     */
+    fun llm(): LlmComponent
 }

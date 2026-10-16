@@ -5,6 +5,7 @@ import com.cereal.sdk.ScriptConfiguration
 import com.cereal.sdk.component.ComponentProvider
 import com.cereal.sdk.component.artifact.ArtifactComponent
 import com.cereal.sdk.component.license.LicenseComponent
+import com.cereal.sdk.component.llm.LlmComponent
 import com.cereal.sdk.component.logger.LoggerComponent
 import com.cereal.sdk.component.notification.NotificationComponent
 import com.cereal.sdk.component.preference.PreferenceComponent
@@ -46,6 +47,14 @@ class TestComponentProviderFactory : ComponentProviderFactory {
      */
     var requestInputResults: List<String> = emptyList()
 
+    /**
+     * The [FakeLlmComponent] returned by `provider.llm()`. Script it with [FakeLlmComponent.queue] or
+     * [FakeLlmComponent.responder] and assert on [FakeLlmComponent.requests]. Throws
+     * [com.cereal.sdk.component.llm.LlmException.NotConfigured] until configured.
+     * Shared across [create] calls so tests can configure it and assert on it.
+     */
+    val llm = FakeLlmComponent()
+
     override fun create(): ComponentProvider =
         TestComponentProvider(
             ConsoleLoggerComponent(),
@@ -55,6 +64,7 @@ class TestComponentProviderFactory : ComponentProviderFactory {
             TestScriptLauncherComponent(this, childScriptConfigurations),
             TestUserInteractionComponent(showUrlResults, showHtmlResults, requestInputResults),
             RecordingArtifactComponent(),
+            llm,
         )
 }
 
@@ -66,6 +76,7 @@ class TestComponentProvider(
     private val scriptLauncherComponent: ScriptLauncherComponent,
     private val userInteractionComponent: UserInteractionComponent,
     private val artifactComponent: ArtifactComponent,
+    private val llmComponent: LlmComponent,
 ) : ComponentProvider {
     override fun logger(): LoggerComponent = loggerComponent
 
@@ -80,4 +91,6 @@ class TestComponentProvider(
     override fun userInteraction(): UserInteractionComponent = userInteractionComponent
 
     override fun artifact(): ArtifactComponent = artifactComponent
+
+    override fun llm(): LlmComponent = llmComponent
 }

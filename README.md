@@ -443,6 +443,44 @@ provider.artifact().emit(
 The payload is held in memory, so this is meant for small, bounded outputs. `emit` throws if the host fails to
 persist the artifact — wrap the call yourself if the artifact is optional.
 
+### LLM (the user's configured model)
+
+> Available since SDK version 1.14.0.
+
+Set `"sdk_version": "1.14.0"` (or higher) in your script's `manifest.json`; nothing fills it in for you, and without it an older client fails your script at runtime instead of asking the user to update.
+
+Call the model the user set up in Settings → AI. The client makes the HTTP call, so the API key never reaches your script, and you need no HTTP client or JSON library. Each `complete` makes exactly one model call; JSON goes in and out as `String`s.
+
+```kotlin
+val request = LlmRequest(
+    system = "You extract product data.",
+    turns = listOf(LlmTurn.User(listOf(UserPart.Text(pageText), UserPart.Image(screenshot, ImageMediaType.Png)))),
+    tools = listOf(LlmTool("lookup", "Looks a SKU up.", lookupSchemaJson)),
+    responseSchemaJson = """{"type":"object","properties":{"price":{"type":"string"}},"required":["price"],"additionalProperties":false}""",
+)
+
+try {
+    val response = provider.llm().complete(request)
+    when (response.stopReason) {
+        StopReason.EndTurn -> parse(response.structuredJson!!)
+        StopReason.ToolUse -> {
+            // Run the tools, then continue with the model's own turn plus your results.
+            val results = response.toolCalls.map { UserPart.ToolResult(it.id, runTool(it.name, it.argumentsJson)) }
+            provider.llm().complete(request.copy(turns = request.turns + response.assistantTurn + LlmTurn.User(results)))
+        }
+        StopReason.MaxTokens, StopReason.Refusal -> { /* no usable answer */ }
+    }
+} catch (e: LlmException.NotConfigured) {
+    // The user has no AI provider set up: fall back to non-LLM behaviour.
+}
+```
+
+- The user chooses provider and model; `LlmRequest` has no model, sampling or stop-sequence fields. `maxTokens` defaults to 4096.
+- Schemas must stay within Anthropic's JSON Schema subset: `"additionalProperties": false` on every object, no numeric or length constraints. The client validates structured output and tool arguments and throws `LlmException.InvalidOutput` when they don't match.
+- `structuredJson` is set only when you asked for a schema and the model ended its turn.
+- Append `response.assistantTurn` as is. Scripts can't construct assistant turns or responses (`@CerealPlatformApi`); in tests, use the builders in `cereal-test-utils`.
+- `LlmException` is sealed: `NotConfigured`, `Authentication`, `RateLimited(retryAfter)`, `InvalidRequest`, `InvalidOutput(raw, assistantTurn)`, `Unavailable`. The client already retries rate limits and server errors before throwing; an uncaught `LlmException` fails the task with its message.
+
 ### User Interaction
 
 ```kotlin
