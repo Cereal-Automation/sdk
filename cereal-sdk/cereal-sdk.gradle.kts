@@ -20,6 +20,8 @@ dependencies {
     testImplementation(project(":cereal-test-utils"))
     testImplementation(libs.coroutines.core)
     testImplementation(libs.mockk)
+    // Compiles script snippets in tests to prove the opt-in API is enforced at compile time.
+    testImplementation(libs.kotlin.compiler.embeddable)
 }
 
 tasks {

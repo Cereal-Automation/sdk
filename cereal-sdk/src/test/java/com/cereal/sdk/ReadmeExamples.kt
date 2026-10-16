@@ -10,6 +10,13 @@ import com.cereal.sdk.ScriptConfiguration
 import com.cereal.sdk.ScriptConfigurationItem
 import com.cereal.sdk.component.ComponentProvider
 import com.cereal.sdk.component.artifact.ArtifactComponent
+import com.cereal.sdk.component.llm.ImageMediaType
+import com.cereal.sdk.component.llm.LlmException
+import com.cereal.sdk.component.llm.LlmRequest
+import com.cereal.sdk.component.llm.LlmTool
+import com.cereal.sdk.component.llm.LlmTurn
+import com.cereal.sdk.component.llm.StopReason
+import com.cereal.sdk.component.llm.UserPart
 import com.cereal.sdk.component.notification.notification
 import com.cereal.sdk.component.notification.telegram.model.TelegramParseMode
 import com.cereal.sdk.component.script.ScriptParameters
@@ -606,6 +613,49 @@ class ReadmeExamples {
                 bytes = csv,
                 mimeType = "text/csv", // optional; inferred from the name's extension when omitted
             )
+        }
+
+    // ------------------------------------------------------------------
+    // LLM
+    // ------------------------------------------------------------------
+
+    @Test
+    fun `readme llm compiles`(): Unit =
+        runBlocking {
+            val provider = TestComponentProviderFactory().create()
+            val pageText = "page"
+            val screenshot = byteArrayOf()
+            val lookupSchemaJson = """{"type":"object","additionalProperties":false}"""
+
+            fun parse(json: String) = json
+
+            fun runTool(
+                name: String,
+                argumentsJson: String,
+            ) = "$name($argumentsJson)"
+
+            val request =
+                LlmRequest(
+                    system = "You extract product data.",
+                    turns = listOf(LlmTurn.User(listOf(UserPart.Text(pageText), UserPart.Image(screenshot, ImageMediaType.Png)))),
+                    tools = listOf(LlmTool("lookup", "Looks a SKU up.", lookupSchemaJson)),
+                    responseSchemaJson = """{"type":"object","properties":{"price":{"type":"string"}},"required":["price"],"additionalProperties":false}""",
+                )
+
+            try {
+                val response = provider.llm().complete(request)
+                when (response.stopReason) {
+                    StopReason.EndTurn -> parse(response.structuredJson!!)
+                    StopReason.ToolUse -> {
+                        // Run the tools, then continue with the model's own turn plus your results.
+                        val results = response.toolCalls.map { UserPart.ToolResult(it.id, runTool(it.name, it.argumentsJson)) }
+                        provider.llm().complete(request.copy(turns = request.turns + response.assistantTurn + LlmTurn.User(results)))
+                    }
+                    StopReason.MaxTokens, StopReason.Refusal -> { /* no usable answer */ }
+                }
+            } catch (e: LlmException.NotConfigured) {
+                // The user has no AI provider set up: fall back to non-LLM behaviour.
+            }
         }
 
     /** Covers the README Testing section's delegating-factory snippet for asserting on artifacts. */

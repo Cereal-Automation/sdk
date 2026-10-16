@@ -94,6 +94,7 @@ public abstract interface class com/cereal/sdk/TaskAction {
 public abstract interface class com/cereal/sdk/component/ComponentProvider {
 	public abstract fun artifact ()Lcom/cereal/sdk/component/artifact/ArtifactComponent;
 	public abstract fun license ()Lcom/cereal/sdk/component/license/LicenseComponent;
+	public abstract fun llm ()Lcom/cereal/sdk/component/llm/LlmComponent;
 	public abstract fun logger ()Lcom/cereal/sdk/component/logger/LoggerComponent;
 	public abstract fun notification ()Lcom/cereal/sdk/component/notification/NotificationComponent;
 	public abstract fun preference ()Lcom/cereal/sdk/component/preference/PreferenceComponent;
@@ -124,6 +125,233 @@ public final class com/cereal/sdk/component/license/HttpResponse$DefaultImpls {
 
 public abstract interface class com/cereal/sdk/component/license/LicenseComponent {
 	public abstract fun checkScriptLicense (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface annotation class com/cereal/sdk/component/llm/CerealPlatformApi : java/lang/annotation/Annotation {
+}
+
+public final class com/cereal/sdk/component/llm/ImageMediaType : java/lang/Enum {
+	public static final field Gif Lcom/cereal/sdk/component/llm/ImageMediaType;
+	public static final field Jpeg Lcom/cereal/sdk/component/llm/ImageMediaType;
+	public static final field Png Lcom/cereal/sdk/component/llm/ImageMediaType;
+	public static final field Webp Lcom/cereal/sdk/component/llm/ImageMediaType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getMimeType ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/cereal/sdk/component/llm/ImageMediaType;
+	public static fun values ()[Lcom/cereal/sdk/component/llm/ImageMediaType;
+}
+
+public abstract interface class com/cereal/sdk/component/llm/LlmComponent {
+	public abstract fun complete (Lcom/cereal/sdk/component/llm/LlmRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class com/cereal/sdk/component/llm/LlmException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/cereal/sdk/component/llm/LlmException$Authentication : com/cereal/sdk/component/llm/LlmException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/cereal/sdk/component/llm/LlmException$InvalidOutput : com/cereal/sdk/component/llm/LlmException {
+	public fun <init> (Ljava/lang/String;Lcom/cereal/sdk/component/llm/LlmTurn$Assistant;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lcom/cereal/sdk/component/llm/LlmTurn$Assistant;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAssistantTurn ()Lcom/cereal/sdk/component/llm/LlmTurn$Assistant;
+	public final fun getRaw ()Ljava/lang/String;
+}
+
+public final class com/cereal/sdk/component/llm/LlmException$InvalidRequest : com/cereal/sdk/component/llm/LlmException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/cereal/sdk/component/llm/LlmException$NotConfigured : com/cereal/sdk/component/llm/LlmException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/cereal/sdk/component/llm/LlmException$RateLimited : com/cereal/sdk/component/llm/LlmException {
+	public synthetic fun <init> (Lkotlin/time/Duration;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lkotlin/time/Duration;Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getRetryAfter-FghU774 ()Lkotlin/time/Duration;
+}
+
+public final class com/cereal/sdk/component/llm/LlmException$Unavailable : com/cereal/sdk/component/llm/LlmException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/cereal/sdk/component/llm/LlmRequest {
+	public static final field Companion Lcom/cereal/sdk/component/llm/LlmRequest$Companion;
+	public static final field DEFAULT_MAX_TOKENS I
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/cereal/sdk/component/llm/ToolChoice;Ljava/lang/String;I)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/cereal/sdk/component/llm/ToolChoice;Ljava/lang/String;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lcom/cereal/sdk/component/llm/ToolChoice;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()I
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/cereal/sdk/component/llm/ToolChoice;Ljava/lang/String;I)Lcom/cereal/sdk/component/llm/LlmRequest;
+	public static synthetic fun copy$default (Lcom/cereal/sdk/component/llm/LlmRequest;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/cereal/sdk/component/llm/ToolChoice;Ljava/lang/String;IILjava/lang/Object;)Lcom/cereal/sdk/component/llm/LlmRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMaxTokens ()I
+	public final fun getResponseSchemaJson ()Ljava/lang/String;
+	public final fun getSystem ()Ljava/lang/String;
+	public final fun getToolChoice ()Lcom/cereal/sdk/component/llm/ToolChoice;
+	public final fun getTools ()Ljava/util/List;
+	public final fun getTurns ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/cereal/sdk/component/llm/LlmRequest$Companion {
+}
+
+public final class com/cereal/sdk/component/llm/LlmResponse {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lcom/cereal/sdk/component/llm/StopReason;Lcom/cereal/sdk/component/llm/LlmUsage;Ljava/lang/String;Ljava/lang/String;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAssistantTurn ()Lcom/cereal/sdk/component/llm/LlmTurn$Assistant;
+	public final fun getModel ()Ljava/lang/String;
+	public final fun getStopReason ()Lcom/cereal/sdk/component/llm/StopReason;
+	public final fun getStructuredJson ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getToolCalls ()Ljava/util/List;
+	public final fun getUsage ()Lcom/cereal/sdk/component/llm/LlmUsage;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/cereal/sdk/component/llm/LlmTool {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/cereal/sdk/component/llm/LlmTool;
+	public static synthetic fun copy$default (Lcom/cereal/sdk/component/llm/LlmTool;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/cereal/sdk/component/llm/LlmTool;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getInputSchemaJson ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/cereal/sdk/component/llm/LlmToolCall {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/cereal/sdk/component/llm/LlmToolCall;
+	public static synthetic fun copy$default (Lcom/cereal/sdk/component/llm/LlmToolCall;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/cereal/sdk/component/llm/LlmToolCall;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArgumentsJson ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/cereal/sdk/component/llm/LlmTurn {
+}
+
+public final class com/cereal/sdk/component/llm/LlmTurn$Assistant : com/cereal/sdk/component/llm/LlmTurn {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getProviderPayload ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getToolCalls ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/cereal/sdk/component/llm/LlmTurn$User : com/cereal/sdk/component/llm/LlmTurn {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/cereal/sdk/component/llm/LlmTurn$User;
+	public static synthetic fun copy$default (Lcom/cereal/sdk/component/llm/LlmTurn$User;Ljava/util/List;ILjava/lang/Object;)Lcom/cereal/sdk/component/llm/LlmTurn$User;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getParts ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/cereal/sdk/component/llm/LlmUsage {
+	public fun <init> (IIII)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun copy (IIII)Lcom/cereal/sdk/component/llm/LlmUsage;
+	public static synthetic fun copy$default (Lcom/cereal/sdk/component/llm/LlmUsage;IIIIILjava/lang/Object;)Lcom/cereal/sdk/component/llm/LlmUsage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCacheRead ()I
+	public final fun getCacheWrite ()I
+	public final fun getInputUncached ()I
+	public final fun getOutput ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/cereal/sdk/component/llm/StopReason : java/lang/Enum {
+	public static final field EndTurn Lcom/cereal/sdk/component/llm/StopReason;
+	public static final field MaxTokens Lcom/cereal/sdk/component/llm/StopReason;
+	public static final field Refusal Lcom/cereal/sdk/component/llm/StopReason;
+	public static final field ToolUse Lcom/cereal/sdk/component/llm/StopReason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/cereal/sdk/component/llm/StopReason;
+	public static fun values ()[Lcom/cereal/sdk/component/llm/StopReason;
+}
+
+public final class com/cereal/sdk/component/llm/ToolChoice : java/lang/Enum {
+	public static final field Auto Lcom/cereal/sdk/component/llm/ToolChoice;
+	public static final field None Lcom/cereal/sdk/component/llm/ToolChoice;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/cereal/sdk/component/llm/ToolChoice;
+	public static fun values ()[Lcom/cereal/sdk/component/llm/ToolChoice;
+}
+
+public abstract interface class com/cereal/sdk/component/llm/UserPart {
+}
+
+public final class com/cereal/sdk/component/llm/UserPart$Image : com/cereal/sdk/component/llm/UserPart {
+	public fun <init> ([BLcom/cereal/sdk/component/llm/ImageMediaType;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBytes ()[B
+	public final fun getMediaType ()Lcom/cereal/sdk/component/llm/ImageMediaType;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/cereal/sdk/component/llm/UserPart$Text : com/cereal/sdk/component/llm/UserPart {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/cereal/sdk/component/llm/UserPart$Text;
+	public static synthetic fun copy$default (Lcom/cereal/sdk/component/llm/UserPart$Text;Ljava/lang/String;ILjava/lang/Object;)Lcom/cereal/sdk/component/llm/UserPart$Text;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/cereal/sdk/component/llm/UserPart$ToolResult : com/cereal/sdk/component/llm/UserPart {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Z)Lcom/cereal/sdk/component/llm/UserPart$ToolResult;
+	public static synthetic fun copy$default (Lcom/cereal/sdk/component/llm/UserPart$ToolResult;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lcom/cereal/sdk/component/llm/UserPart$ToolResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public final fun getToolCallId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isError ()Z
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class com/cereal/sdk/component/logger/LoggerComponent {
