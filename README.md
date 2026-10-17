@@ -392,6 +392,15 @@ persist the artifact — wrap the call yourself if the artifact is optional.
 
 Set `"sdk_version": "1.14.0"` (or higher) in your script's `manifest.json`; nothing fills it in for you, and without it an older client fails your script at runtime instead of asking the user to update.
 
+Also declare the `llm` Script feature with `"features": ["llm"]` in the same `manifest.json`. Without it, `provider.llm()` throws and the task fails with an error telling you to add it. You need both keys: `features` doesn't replace `sdk_version`, because older clients ignore `features`.
+
+```json
+{
+  "sdk_version": "1.14.0",
+  "features": ["llm"]
+}
+```
+
 Call the model the user set up in Settings → AI. The client makes the HTTP call, so the API key never reaches your script, and you need no HTTP client or JSON library. Each `complete` makes exactly one model call; JSON goes in and out as `String`s.
 
 ```kotlin

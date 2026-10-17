@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Docs: scripts that call `llm()` must declare the `llm` Script feature with `"features": ["llm"]` in `manifest.json`. Clients that support it fail undeclared calls with an error telling the author to add it. It doesn't replace the `sdk_version` requirement (`1.14.0` or higher), because older clients ignore `features`.
+
 ## 1.15.0
 
 - **Removed** fetched field options (`FieldOptions`, `FieldOption`, `NoFieldOptions` and the `options` attribute on `@ScriptConfigurationItem`) and task actions (`TaskAction`, `Script.taskActions()` and `TestScriptRunner.runTaskAction`), both added in 1.13.0. No released script used them. `StateModifier.getPlaceholder`, `@ScriptConfigurationSections` and `Secret` fields in list rows stay.
