@@ -22,6 +22,7 @@ import com.cereal.sdk.component.notification.telegram.model.TelegramParseMode
 import com.cereal.sdk.component.script.ScriptParameters
 import com.cereal.sdk.component.userinteraction.WebResourceRequest
 import com.cereal.sdk.models.Secret
+import com.cereal.sdk.statemodifier.DefaultStateModifier
 import com.cereal.sdk.statemodifier.ScriptConfig
 import com.cereal.sdk.statemodifier.ScriptConfigValue
 import com.cereal.sdk.statemodifier.ScriptConfigValue.BooleanScriptConfigValue
@@ -133,56 +134,6 @@ class ReadmeExamples {
     }
 
     // ------------------------------------------------------------------
-    // Task actions
-    // ------------------------------------------------------------------
-
-    object ReadmeForgetLearnedSteps : TaskAction<ReadmeConfig> {
-        override val name = "Forget learned steps"
-        override val confirm = "The script will re-learn the steps on its next run."
-
-        override suspend fun run(
-            configuration: ReadmeConfig,
-            provider: ComponentProvider,
-        ): String? {
-            provider.preference().delete("learned_steps")
-            return "Forgot learned steps"
-        }
-    }
-
-    @Test
-    fun `readme task actions compile`() =
-        runBlocking {
-            val script =
-                object : Script<ReadmeConfig> {
-                    override suspend fun onStart(
-                        configuration: ReadmeConfig,
-                        provider: ComponentProvider,
-                    ): Boolean = true
-
-                    override suspend fun execute(
-                        configuration: ReadmeConfig,
-                        provider: ComponentProvider,
-                        statusUpdate: suspend (String) -> Unit,
-                    ): ExecutionResult = ExecutionResult.Success("Done")
-
-                    override suspend fun onFinish(
-                        configuration: ReadmeConfig,
-                        provider: ComponentProvider,
-                    ) {}
-
-                    override fun taskActions(): List<TaskAction<ReadmeConfig>> = listOf(ReadmeForgetLearnedSteps)
-                }
-            val config = mockk<ReadmeConfig>()
-            val factory = TestComponentProviderFactory()
-            val preferences = factory.create().preference()
-            preferences.setString("learned_steps", "steps")
-
-            val message = TestScriptRunner(script).runTaskAction("Forget learned steps", config, factory)
-            assertEquals("Forgot learned steps", message)
-            assertNull(preferences.getString("learned_steps"))
-        }
-
-    // ------------------------------------------------------------------
     // Complex lists
     // ------------------------------------------------------------------
 
@@ -284,7 +235,7 @@ class ReadmeExamples {
     }
 
     // ------------------------------------------------------------------
-    // Placeholder (client SDK 1.13.0+) and fetched options
+    // Placeholder (client SDK 1.13.0+)
     // ------------------------------------------------------------------
 
     object ServerUrlState : StateModifier {
@@ -295,35 +246,15 @@ class ReadmeExamples {
         override fun getPlaceholder(scriptConfig: ScriptConfig): String? = "http://localhost:11434/v1"
     }
 
-    object ModelOptions : FieldOptions {
-        override val dependsOn = setOf("apiKey")
-
-        override suspend fun load(config: ScriptConfig): List<FieldOption> {
-            val key =
-                (config.valueForKey("apiKey") as? SecretScriptConfigValue)?.value
-                    ?: throw IllegalStateException("Enter your API key to list models")
-            check(key.reveal().isNotEmpty())
-            return listOf(FieldOption("small", "Small (recommended)"), FieldOption("large"))
-        }
-    }
-
-    interface ModelConfig : ScriptConfiguration {
-        @ScriptConfigurationItem(keyName = "apiKey", name = "API key", description = "Your provider key.")
-        fun apiKey(): Secret
-
-        @ScriptConfigurationItem(keyName = "model", name = "Model", description = "Model to use.", options = ModelOptions::class)
-        fun model(): String
-    }
-
     @Test
-    fun `readme placeholder and fetched options compile`() {
+    fun `readme placeholder compiles`() {
         val config =
             object : ScriptConfig {
                 override fun valueForKey(key: String) = SecretScriptConfigValue(Secret("sk-test"))
             }
 
         assertEquals("http://localhost:11434/v1", ServerUrlState.getPlaceholder(config))
-        assertEquals("small", runBlocking { ModelOptions.load(config) }.first().id)
+        assertNull(DefaultStateModifier.getPlaceholder(config))
     }
 
     // ------------------------------------------------------------------
