@@ -27,8 +27,9 @@ interface StateModifier {
     fun getError(scriptConfig: ScriptConfig): String?
 
     /**
-     * Hint text shown while the field is empty. Called whenever [getVisibility] is. A default value still pre-fills
-     * the field as a real value; a placeholder is never stored.
+     * Static hint text shown in the field while it is empty, for example an example URL. Called whenever
+     * [getVisibility] is, so the hint may depend on other values. A placeholder is display-only and never stored;
+     * use a default value to pre-fill the field with a real value.
      *
      * @param scriptConfig The raw script configuration containing the values the user has already filled in while configuring
      * the script.

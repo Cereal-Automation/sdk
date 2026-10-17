@@ -69,10 +69,7 @@ interface ScriptConfiguration
  * section key that is not declared is rejected when the platform loads the script. [position] orders items within
  * their section. Sections only affect layout: the item's [keyName] and value are unchanged.
  *
- * Use [options] on a top-level `String` or `String?` item to offer fetched choices from a [FieldOptions] `object`.
- * Setting it on any other item is a definition error when the platform loads the script.
- *
- * [section] and [options] are available since 1.13.0.
+ * [section] is available since 1.13.0.
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
@@ -85,5 +82,4 @@ annotation class ScriptConfigurationItem(
     val stateModifier: KClass<out StateModifier> = DefaultStateModifier::class,
     val isScriptIdentifier: Boolean = false,
     val section: String = "",
-    val options: KClass<out FieldOptions> = NoFieldOptions::class,
 )
