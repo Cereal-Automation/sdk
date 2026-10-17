@@ -80,29 +80,6 @@ class MyScript : Script<MyScript.Config> {
 }
 ```
 
-### Task actions
-
-Requires client SDK **1.13.0** or newer.
-
-Override `taskActions()` to add items to an existing task's menu, for example to reset state the script learned. Each action runs with that task's own configuration and `ComponentProvider`, so it reaches the same preferences and files as the task's runs. The client disables the items while the task runs and shows the `confirm` text (if non-null) before running one.
-
-```kotlin
-object ForgetLearnedSteps : TaskAction<MyScript.Config> {
-    override val name = "Forget learned steps"
-    override val confirm = "The script will re-learn the steps on its next run."
-
-    override suspend fun run(configuration: MyScript.Config, provider: ComponentProvider): String? {
-        provider.preference().delete("learned_steps")
-        return "Forgot learned steps" // shown as the success message; null shows a generic one
-    }
-}
-
-// In MyScript:
-override fun taskActions(): List<TaskAction<Config>> = listOf(ForgetLearnedSteps)
-```
-
-Throw from `run` to report a failure; the exception message is shown to the user.
-
 ---
 
 ## Configuration
@@ -347,40 +324,6 @@ object ServerUrlState : StateModifier {
 }
 ```
 
-### Fetched options
-
-Requires client SDK **1.13.0** or newer.
-
-A top-level `String` or `String?` item can offer choices fetched at form time. Set `options` to a `FieldOptions` `object` (like `stateModifier`, a `class` fails to load). The field becomes an editable combo box that always accepts free text, and only the picked option's `id` is stored.
-
-```kotlin
-object ModelOptions : FieldOptions {
-    override val dependsOn = setOf("apiKey")
-
-    override suspend fun load(config: ScriptConfig): List<FieldOption> {
-        val key = (config.valueForKey("apiKey") as? SecretScriptConfigValue)?.value
-            ?: throw IllegalStateException("Enter your API key to list models")
-        // Call your provider with key.reveal() here; order and label the result yourself.
-        return listOf(FieldOption("small", "Small (recommended)"), FieldOption("large"))
-    }
-}
-
-interface MyConfig : ScriptConfiguration {
-    @ScriptConfigurationItem(keyName = "apiKey", name = "API key", description = "Your provider key.")
-    fun apiKey(): Secret
-
-    @ScriptConfigurationItem(keyName = "model", name = "Model", description = "Model to use.", options = ModelOptions::class)
-    fun model(): String
-}
-```
-
-- `load` runs only when the user opens the dropdown or presses refresh, off the UI thread, with a ~15 s timeout. Editing a `dependsOn` field or closing the form cancels it.
-- `config` holds only the `dependsOn` fields, with their current unsaved values. Secrets arrive as `SecretScriptConfigValue`. The call is made even when those fields are empty.
-- Options are shown in the order you return them, so filter, sort and label them in `load`.
-- Throw to report a failure: the exception message is shown inline under the field with a Retry action.
-- `options` on anything other than a top-level `String` / `String?` item **fails at load time**.
-- Form-time code has no network restriction; see [ADR 0001](docs/adr/0001-form-time-code-is-trusted.md).
-
 ---
 
 ## Components
@@ -542,13 +485,6 @@ fun `script succeeds when item is available`() = runBlocking {
 
     assertEquals(ScriptStatus.Success, runner.status)
 }
-```
-
-Run a task action by name with `runTaskAction`, which returns the action's success message:
-
-```kotlin
-val message = TestScriptRunner(MyScript()).runTaskAction("Forget learned steps", config, factory)
-assertEquals("Forgot learned steps", message)
 ```
 
 `TestComponentProviderFactory` provides in-memory implementations of all components. Artifacts are the only output it collects for assertions, via `RecordingArtifactComponent.emitted` — the bundled logger and notification components write to the console rather than to an inspectable list.
