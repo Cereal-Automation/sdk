@@ -8,6 +8,9 @@ package com.cereal.sdk.component.llm
  *
  * Scripts that use this component must set `"sdk_version": "1.14.0"` (or higher) in `manifest.json`, so older
  * clients refuse the script with "update your client" instead of failing at runtime.
+ * They must also declare the `llm` Script feature with `"features": ["llm"]` in `manifest.json`; without it,
+ * `provider.llm()` throws and the task fails with an error telling the author to add it. `features` doesn't
+ * replace `sdk_version`, because older clients ignore `features`.
  *
  * @since 1.14.0
  */
