@@ -59,7 +59,6 @@ class DiscordMessageBuilder {
 }
 
 /** Entry point DSL helper for building a [DiscordMessage]. */
-@NotificationDsl
 fun discordMessage(setup: DiscordMessageBuilder.() -> Unit): DiscordMessage {
     val discordMessageBuilder = DiscordMessageBuilder()
     discordMessageBuilder.setup()

@@ -66,7 +66,6 @@ data class NotificationBuilder(
  *     }
  * }
  */
-@NotificationDsl
 fun notification(
     message: String,
     setup: NotificationBuilder.() -> Unit,
