@@ -6,7 +6,7 @@
 
 ## 1.15.0
 
-- **Script variants:** clients bundling 1.15.0 read the manifest's `variants`. When a package declares variants, users pick only those; the top-level `script` and `instructions` are no longer an entry, so list the main script as a variant too. Packages with variants must set `"sdk_version": "1.15.0"` (or higher) so older clients ask the user to update. See the manifest docs.
+- **Multiple entry scripts:** clients bundling 1.15.0 read the manifest's `scripts`, a list of entry scripts (each with `id`, `name`, `script` and optional `instructions`) the user picks from. With `scripts` they are the only entries, so the top-level `script` and `instructions` can be left out and the main script is listed in `scripts` too. Packages with `scripts` must set `"sdk_version": "1.15.0"` (or higher); older clients can't read a manifest without `script` and don't list the package. See the manifest docs.
 - **Removed** fetched field options (`FieldOptions`, `FieldOption`, `NoFieldOptions` and the `options` attribute on `@ScriptConfigurationItem`) and task actions (`TaskAction`, `Script.taskActions()` and `TestScriptRunner.runTaskAction`), both added in 1.13.0. No released script used them. `StateModifier.getPlaceholder`, `@ScriptConfigurationSections` and `Secret` fields in list rows stay.
 
 ## 1.14.0
