@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.16.0
 
+- **Reserved run-trace MIME type:** added `RUN_TRACE_MIME_TYPE` (`com.cereal.sdk.component.artifact`) and documented it on `ArtifactComponent.emit`. An emit of `application/vnd.cereal.run-trace; key=<key>; outcome=<tag>; label=<label>[; notable]`, named `trace-<key>.jsonl.gz` or `learned-trace-<key>.jsonl.gz`, is a run trace for diagnostics, not an artifact: clients bundling 1.16.0 keep it out of the user's artifacts, treat the bytes as opaque and refuse traces over 1 MB. No new API beyond the constant. Scripts that emit run traces must set `"sdk_version": "1.16.0"` (or higher); older clients would list traces as artifacts.
 - Docs: scripts that call `llm()` must declare the `llm` Script feature with `"features": ["llm"]` in `manifest.json`. Clients that support it fail undeclared calls with an error telling the author to add it. It doesn't replace the `sdk_version` requirement (`1.14.0` or higher), because older clients ignore `features`.
 
 ## 1.15.0
