@@ -386,6 +386,10 @@ provider.artifact().emit(
 The payload is held in memory, so this is meant for small, bounded outputs. `emit` throws if the host fails to
 persist the artifact — wrap the call yourself if the artifact is optional.
 
+`RUN_TRACE_MIME_TYPE` (since SDK 1.16.0) is reserved: an emit with it is a diagnostics run trace, not an artifact,
+and is never shown to the user. A refused trace is dropped and logged rather than thrown. See the KDoc on
+`ArtifactComponent.emit` for the parameters and names; scripts that use it must set `"sdk_version": "1.16.0"`.
+
 ### LLM (the user's configured model)
 
 > Available since SDK version 1.14.0.
