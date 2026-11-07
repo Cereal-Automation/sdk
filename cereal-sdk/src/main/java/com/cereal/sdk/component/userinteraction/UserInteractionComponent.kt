@@ -1,5 +1,7 @@
 package com.cereal.sdk.component.userinteraction
 
+import kotlin.time.Duration
+
 interface UserInteractionComponent {
     /**
      * Displays the given URL in a web view with the specified title and handles termination conditions.
@@ -60,6 +62,42 @@ interface UserInteractionComponent {
         title: String,
         description: String,
     ): String
+
+    /**
+     * Asks the user to confirm a step, typically an irreversible one (placing an order, paying, sending), and suspends
+     * until they answer, the confirmation expires or the caller is cancelled. Use this instead of [showHtml] with
+     * links to fake URLs.
+     *
+     * Contract clients implement:
+     * - Every text field is plain text; the client escapes and lays it out per channel. [url] is the only link.
+     * - Closing the confirmation without pressing a button returns [ConfirmationResult.Declined].
+     * - The client enforces [timeout]: when it passes unanswered, the client tears the confirmation down and returns
+     *   [ConfirmationResult.Expired].
+     * - Cancelling the caller's coroutine (e.g. the task is stopped) tears the confirmation down in every channel.
+     * - A client failure (the confirmation can't be shown) throws; it never returns a result.
+     * - The call owns all notifying of the confirmation (e.g. a heads-up on the user's notification channels, remote
+     *   approval). Scripts don't notify about it themselves.
+     *
+     * Scripts calling this must set `"sdk_version": "1.17.0"` (or higher) in `manifest.json`.
+     *
+     * @param title The window title, e.g. naming the task.
+     * @param question The headline: one plain question, e.g. "Place order on amazon.com?".
+     * @param details Paragraphs shown in order below the question, e.g. what the step does and why.
+     * @param url The page the step is on, shown as a link, or null for none.
+     * @param confirmLabel The confirm button's text, e.g. "Yes, place order".
+     * @param declineLabel The decline button's text, e.g. "No, stop here".
+     * @param timeout How long the confirmation waits for an answer; [Duration.INFINITE] for no expiry.
+     * @return How the confirmation ended.
+     */
+    suspend fun requestConfirmation(
+        title: String,
+        question: String,
+        details: List<String>,
+        url: String?,
+        confirmLabel: String,
+        declineLabel: String,
+        timeout: Duration,
+    ): ConfirmationResult
 
     /**
      * Presents a continue button to the user (outside the browser flow). When clicked, the suspended call resumes and

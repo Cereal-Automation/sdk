@@ -1,7 +1,9 @@
 package com.cereal.test.components
 
+import com.cereal.sdk.component.userinteraction.ConfirmationResult
 import com.cereal.sdk.component.userinteraction.UserInteractionComponent
 import com.cereal.sdk.component.userinteraction.WebResourceRequest
+import kotlin.time.Duration
 
 /**
  * A test implementation of the [UserInteractionComponent] interface for mocking and simulating user interactions
@@ -17,15 +19,19 @@ import com.cereal.sdk.component.userinteraction.WebResourceRequest
  * from the `showHtml` method. Defaults to null.
  * @param requestInputResults A list of [String] instances to mock results returned
  * from the `requestInput` method. Defaults to null.
+ * @param requestConfirmationResults A list of [ConfirmationResult] instances to mock results returned
+ * from the `requestConfirmation` method. Defaults to an empty list.
  */
 class TestUserInteractionComponent(
     private val showUrlResults: List<WebResourceRequest> = emptyList(),
     private val showHtmlResults: List<WebResourceRequest> = emptyList(),
     private val requestInputResults: List<String> = emptyList(),
+    private val requestConfirmationResults: List<ConfirmationResult> = emptyList(),
 ) : UserInteractionComponent {
     private var showUrlCounter = 0
     private var showHtmlCounter = 0
     private var requestInputCounter = 0
+    private var requestConfirmationCounter = 0
 
     override suspend fun showUrl(
         title: String,
@@ -76,6 +82,24 @@ class TestUserInteractionComponent(
                     "No String response provided. Provide a String for index $requestInputCounter in TestUserInteractionComponent.requestInputResults",
                 )
         requestInputCounter++
+        return result
+    }
+
+    override suspend fun requestConfirmation(
+        title: String,
+        question: String,
+        details: List<String>,
+        url: String?,
+        confirmLabel: String,
+        declineLabel: String,
+        timeout: Duration,
+    ): ConfirmationResult {
+        val result =
+            requestConfirmationResults.getOrNull(requestConfirmationCounter)
+                ?: throw RuntimeException(
+                    "No ConfirmationResult provided. Provide a ConfirmationResult for index $requestConfirmationCounter in TestUserInteractionComponent.requestConfirmationResults",
+                )
+        requestConfirmationCounter++
         return result
     }
 

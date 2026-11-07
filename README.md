@@ -452,6 +452,18 @@ val input = provider.userInteraction().requestInput("Enter code", "Check your em
 
 // Show a continue button the user must click to proceed
 provider.userInteraction().showContinueButton()
+
+// Ask the user to confirm an irreversible step (needs "sdk_version": "1.17.0")
+val answer = provider.userInteraction().requestConfirmation(
+    title = "Task 3",
+    question = "Place order on example.com?",
+    details = listOf("Clicks \"Place order\".", "The cart total is under your limit."),
+    url = "https://example.com/checkout",
+    confirmLabel = "Yes, place order",
+    declineLabel = "No, stop here",
+    timeout = 15.minutes,
+)
+if (answer != ConfirmationResult.Confirmed) return // Declined or Expired
 ```
 
 ### Child Scripts
@@ -489,6 +501,7 @@ fun `script succeeds when item is available`() = runBlocking {
     val factory = TestComponentProviderFactory()
     // Optionally seed mock responses:
     // factory.requestInputResults = listOf("myinput")
+    // factory.requestConfirmationResults = listOf(ConfirmationResult.Confirmed)
     // factory.showUrlResults = listOf(
     //     WebResourceRequest(method = "GET", requestHeaders = emptyMap(), url = "https://...", postData = null)
     // )
