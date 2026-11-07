@@ -10,6 +10,7 @@ import com.cereal.sdk.component.logger.LoggerComponent
 import com.cereal.sdk.component.notification.NotificationComponent
 import com.cereal.sdk.component.preference.PreferenceComponent
 import com.cereal.sdk.component.script.ScriptLauncherComponent
+import com.cereal.sdk.component.userinteraction.ConfirmationResult
 import com.cereal.sdk.component.userinteraction.UserInteractionComponent
 import com.cereal.sdk.component.userinteraction.WebResourceRequest
 import com.cereal.test.ComponentProviderFactory
@@ -48,6 +49,13 @@ class TestComponentProviderFactory : ComponentProviderFactory {
     var requestInputResults: List<String> = emptyList()
 
     /**
+     * A list of [ConfirmationResult] objects used to mock results returned
+     * from the `requestConfirmation` method in the `TestUserInteractionComponent`.
+     * Defaults to an empty list.
+     */
+    var requestConfirmationResults: List<ConfirmationResult> = emptyList()
+
+    /**
      * The [FakeLlmComponent] returned by `provider.llm()`. Script it with [FakeLlmComponent.queue] or
      * [FakeLlmComponent.responder] and assert on [FakeLlmComponent.requests]. Throws
      * [com.cereal.sdk.component.llm.LlmException.NotConfigured] until configured.
@@ -62,7 +70,7 @@ class TestComponentProviderFactory : ComponentProviderFactory {
             TestLicenseComponent(),
             TestPreferenceComponent(),
             TestScriptLauncherComponent(this, childScriptConfigurations),
-            TestUserInteractionComponent(showUrlResults, showHtmlResults, requestInputResults),
+            TestUserInteractionComponent(showUrlResults, showHtmlResults, requestInputResults, requestConfirmationResults),
             RecordingArtifactComponent(),
             llm,
         )

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.17.0
+
+- **Confirmations:** added `UserInteractionComponent.requestConfirmation(title, question, details, url, confirmLabel, declineLabel, timeout): ConfirmationResult` (`Confirmed`, `Declined` or `Expired`), so scripts stop faking a confirmation with `showHtml` and links to a fake URL. Fields are plain text and `url` is the only link. Closing counts as `Declined`, the client enforces `timeout` (`Duration.INFINITE` for none) and returns `Expired`, cancelling the caller tears it down, a client failure throws, and the call owns all notifying of the confirmation. Scripts that call it must set `"sdk_version": "1.17.0"` (or higher); scripts built on older SDKs keep loading. `TestUserInteractionComponent` takes `requestConfirmationResults` (also on `TestComponentProviderFactory`). Custom `UserInteractionComponent` implementations must add the method.
+
 ## 1.16.0
 
 - **Reserved run-trace MIME type:** added `RUN_TRACE_MIME_TYPE` (`com.cereal.sdk.component.artifact`) and documented it on `ArtifactComponent.emit`. An emit of `application/vnd.cereal.run-trace; key=<key>; outcome=<tag>; label=<label>[; notable]`, named `trace-<key>.jsonl.gz` or `learned-trace-<key>.jsonl.gz`, is a run trace for diagnostics, not an artifact: clients bundling 1.16.0 keep it out of the user's artifacts, treat the bytes as opaque and refuse traces over 1 MB. No new API beyond the constant. Scripts that emit run traces must set `"sdk_version": "1.16.0"` (or higher); older clients would list traces as artifacts.
